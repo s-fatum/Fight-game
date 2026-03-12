@@ -13,7 +13,7 @@
 	</div>
     <router-link
         to="/game"
-        class="button main-button"
+        class="button game-popup__button"
     >
       Ура, супер!
     </router-link>
@@ -42,15 +42,15 @@ defineProps({
 	  background: url('../../../images/salut.gif') 50% 50% / 100% 100%;
 
 	  &__text {
-		margin: 0;
-		font-size: 40px;
-		text-align: center;
+      margin: 0;
+      font-size: 40px;
+      text-align: center;
 	  }
 
 	  &__image {
-		width: 100%;
-		height: auto;
-		user-select: none;
+      width: 100%;
+      height: auto;
+      user-select: none;
 	  }
 
 	  &__crown {
@@ -76,20 +76,20 @@ defineProps({
 	  }
 
 	  &__button {
-		max-width: 320px;
-		width: 100%;
-		border: 1px solid #000;
-		font-size: 40px;
-		padding: 10px 20px;
-		margin-top: 30px;
+      max-width: 320px;
+      width: 100%;
+      border: 1px solid #000;
+      font-size: 40px;
+      padding: 10px 20px;
+      margin-top: 30px;
 
-		&:hover {
-			background: yellowgreen;
-		}
+      &:hover {
+        background: yellowgreen;
+      }
 
-		&:active {
-			background: forestgreen;
-		}
+      &:active {
+        background: forestgreen;
+      }
 	  }
 	}
 </style>
