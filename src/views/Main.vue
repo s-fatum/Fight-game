@@ -1,12 +1,12 @@
 <template>
 	<div class="container">
 		<h1 class="title">Первая в мире супер игра</h1>
-		<a
-			href="/game"
-			class="button main-button"
-		>
-		  Начать игру
-		</a>
+    <router-link
+        to="/game"
+        class="button main-button"
+    >
+      Начать игру
+    </router-link>
 	</div>
 </template>
 

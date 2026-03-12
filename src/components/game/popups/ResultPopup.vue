@@ -11,7 +11,12 @@
 
 	  <img :src="winnerImage" :alt="winnerName" class="game-popup__image">
 	</div>
-	<a href="/game" class="button game-popup__button">Ура, супер</a>
+    <router-link
+        to="/game"
+        class="button main-button"
+    >
+      Ура, супер!
+    </router-link>
   </div>
 </template>
 
