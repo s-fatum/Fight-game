@@ -28,7 +28,7 @@ export const useBattleStore = defineStore('battle', {
             if (fighterData) {
                 this.player = new PlayerCore(JSON.parse(JSON.stringify(fighterData)));
                 const enemyData = all.find(f => f.id !== this.selectedFighterId) || all[0];
-                this.enemy = new PlayerCore(enemyData);
+                this.enemy = new PlayerCore(enemyData as IFighterStats);
 
                 console.log(`⚔️ [ПАРАМЕТРЫ] Игрок: ${this.player.characterInfo.characterName} (HP: ${this.player.playerHealth.maxHealth}), Противник: ${this.enemy.characterInfo.characterName}`);
             }
