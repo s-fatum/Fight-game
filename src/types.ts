@@ -15,8 +15,12 @@ export type GameState = 'START' | 'DICE_ROLL' | 'BATTLE_ROUND_1' | 'BATTLE_BOSS'
 export interface IBattleRound {
     targetId: number;
     damage: number;
+    attackerId: number;
+    isCrit: boolean;
 }
 
 export interface IBattleScenario {
+    winnerId: number;
+    initialBoosts: any[];
     rounds: IBattleRound[];
 }

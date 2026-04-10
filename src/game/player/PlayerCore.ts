@@ -2,18 +2,17 @@
 import type { IFighterStats } from '@/types';
 
 export default class PlayerCore {
-    playerId: number;
-    characterInfo: {
+    public playerId: number;
+    public characterInfo: {
         characterName: string;
         characterImg: string;
     };
-    playerHealth: {
+    public playerHealth: {
         currentHealth: number;
         maxHealth: number;
-        healthColor: string;
     };
-    attackButtonDisable: boolean = false;
-    isWinner: boolean;
+    public attackButtonDisable: boolean = false;
+    public isWinner: boolean = false;
 
     constructor(fighter: IFighterStats) {
         this.playerId = fighter.id;
@@ -24,21 +23,38 @@ export default class PlayerCore {
         this.playerHealth = {
             currentHealth: fighter.currentHealth,
             maxHealth: fighter.maxHealth,
-            healthColor: fighter.healthColor || '#58964d',
         };
         this.isWinner = fighter.isWinner || false;
     }
 
-    // Применяет урон и обновляет цвет
-    applyDamage(damage: number) {
-        this.playerHealth.currentHealth = Math.max(0, this.playerHealth.currentHealth - damage);
-        this.updateHealthColor();
+    /**
+     * Геттер для динамического расчета цвета здоровья.
+     */
+    public get healthColor(): string {
+        const percent = (this.playerHealth.currentHealth / this.playerHealth.maxHealth) * 100;
+
+        if (percent > 50) {
+            return '#58964d'; // Зеленый
+        } else if (percent > 25) {
+            return '#f8b30e'; // Оранжевый
+        } else {
+            return '#d20505'; // Красный
+        }
     }
 
-    private updateHealthColor() {
-        const percent = (this.playerHealth.currentHealth / this.playerHealth.maxHealth) * 100;
-        if (percent > 50) this.playerHealth.healthColor = '#58964d';
-        else if (percent > 25) this.playerHealth.healthColor = '#f8b30e';
-        else this.playerHealth.healthColor = '#d20505';
+    public playerGetDamage(damage: number, attacker?: PlayerCore): void {
+        this.playerHealth.currentHealth = Math.max(0, this.playerHealth.currentHealth - damage);
+
+        if (this.playerHealth.currentHealth <= 0 && attacker) {
+            attacker.isWinner = true;
+        }
+    }
+
+    public playerSetAttack(): void {
+        this.attackButtonDisable = true;
+    }
+
+    public resetActions(): void {
+        this.attackButtonDisable = false;
     }
 }

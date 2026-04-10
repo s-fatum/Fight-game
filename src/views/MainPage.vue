@@ -4,41 +4,41 @@
 
         <div class="fighters-container">
             <div
-                v-for="fighter in store.availableFighters"
+                v-for="fighter in availableFighters"
                 :key="fighter.id"
                 @click="selectHero(fighter.id)"
-                :class="['fighter-card', { 'selected': store.selectedFighterId === fighter.id }]"
+                :class="['fighter-card', { 'selected': selectedFighterId === fighter.id }]"
             >
                 <img :src="fighter.avatar" :alt="fighter.name" class="fighter-card__img">
                 <p class="fighter-card__name">{{ fighter.name }}</p>
             </div>
         </div>
 
-        <div v-if="store.selectedFighterId" class="setup-section">
+        <div v-if="selectedFighterId" class="setup-section">
 
             <div class="boost-box">
                 <h3>Усиления (Кубики)</h3>
                 <div class="dice-display">
-          <span v-for="(dice, idx) in store.diceValues" :key="idx" class="die">
+          <span v-for="(dice, idx) in diceValues" :key="idx" class="die">
             🎲 {{ dice }}
           </span>
                 </div>
                 <button
-                    @click="store.buyDice"
-                    :disabled="!store.canBuyDice"
+                    @click="buyDice"
+                    :disabled="!canBuyDice"
                     class="buy-button"
                 >
-                    Купить кубик ({{ store.nextDicePrice }} 💰)
+                    Купить кубик ({{ nextDicePrice }} 💰)
                 </button>
-                <p>Шанс на успех: +{{ store.diceValues.length * 5 }}%</p>
+                <p>Шанс на успех: +{{ diceValues.length * 5 }}%</p>
             </div>
 
             <div class="bet-box">
                 <h3>Ставка и режим</h3>
-                <input type="number" v-model="store.betAmount" class="bet-input">
+                <input type="number" v-model="betAmount" class="bet-input">
 
                 <label class="boss-label">
-                    <input type="checkbox" v-model="store.isBossMode">
+                    <input type="checkbox" v-model="isBossMode">
                     Режим БОССА (x4 награда)
                 </label>
             </div>
@@ -48,30 +48,49 @@
     </div>
 </template>
 
-<script setup lang="ts">
-import { onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+<script lang="ts">
+import { defineComponent } from 'vue';
+import { mapState, mapActions, mapWritableState } from 'pinia';
 import { useBattleStore } from '@/store/battle';
 
-const store = useBattleStore();
-const router = useRouter();
+export default defineComponent({
+    name: 'MainPage',
+    computed: {
+        // Подключаем только читаемые свойства
+        ...mapState(useBattleStore, ['availableFighters', 'diceValues', 'canBuyDice', 'nextDicePrice']),
+        // Подключаем изменяемые свойства (для v-model)
+        ...mapWritableState(useBattleStore, ['selectedFighterId', 'betAmount', 'isBossMode'])
+    },
+    methods: {
+        // Подключаем экшены
+        ...mapActions(useBattleStore, ['loadFighters', 'initBattle', 'buyDice']),
 
-onMounted(() => {
-    store.loadFighters();
+        selectHero(id: number) {
+            console.log(`🎯 [UI] Выбран ID: ${id}`);
+            this.selectedFighterId = id;
+        },
+
+        async handleStart() {
+            console.log("🖱 [UI] Нажата кнопка СТАРТ");
+            await this.initBattle();
+            this.$router.push('/game');
+        }
+    },
+    mounted() {
+        this.loadFighters();
+    }
 });
-
-const selectHero = (id: number) => {
-    store.selectedFighterId = id;
-};
-
-const handleStart = async () => {
-    // Инициализируем данные боя в сторе и уходим на страницу боя
-    await store.initBattle();
-    router.push('/game');
-};
 </script>
 
 <style lang="scss" scoped>
+/* --- ВОССТАНОВЛЕННЫЕ СТИЛИ ГЛАВНОЙ СТРАНИЦЫ --- */
+.title {
+    font-size: 80px;
+    text-align: center;
+    margin-top: 95px;
+    margin-bottom: 0;
+}
+
 .setup-section {
     display: flex;
     flex-direction: column;
@@ -96,6 +115,7 @@ const handleStart = async () => {
     background: #eee;
     padding: 5px;
     border-radius: 4px;
+    color: #333;
 }
 
 .bet-input {
@@ -105,6 +125,7 @@ const handleStart = async () => {
     width: 100px;
     text-align: center;
     font-size: 20px;
+    color: #000;
 }
 
 .boss-label {
@@ -131,6 +152,7 @@ const handleStart = async () => {
     transition: all 0.3s ease;
     text-align: center;
     background: #fff;
+    color: #000;
 
     &__img {
         width: 150px;
@@ -143,5 +165,34 @@ const handleStart = async () => {
         box-shadow: 0 0 15px rgba(65, 105, 225, 0.5);
         transform: scale(1.05);
     }
+}
+
+.main-button {
+    max-width: 300px;
+    width: 100%;
+    height: 100px;
+    font-size: 30px;
+    margin: 81px auto 0;
+    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
+    background-color: #4169E1;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 10px;
+
+    &:hover { background-color: #9370DB; }
+    &:active { background-color: #483D8B; }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.buy-button {
+    padding: 10px 20px;
+    background: #eee;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    cursor: pointer;
+    &:disabled { opacity: 0.5; }
 }
 </style>
