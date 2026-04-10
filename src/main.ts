@@ -1,21 +1,11 @@
-import AppComponent from './App.vue';
-import { createApp, type App } from 'vue';
-import router from './router';
+import { createApp } from 'vue'
+import { createPinia } from 'pinia'
+import App from './App.vue'
+import router from './router'
 
-import './styles/style.scss';
+const app = createApp(App)
 
-function createVueApp() {
-    return createApp(AppComponent);
-}
+app.use(createPinia())
+app.use(router)
 
-function addPluginsApp(app: App): App {
-    return app.use(router);
-}
-
-function mountApp(app: App): void {
-    app.mount('#app');
-}
-
-const app = createVueApp();
-const appPlugins = addPluginsApp(app);
-mountApp(appPlugins);
+app.mount('#app')
