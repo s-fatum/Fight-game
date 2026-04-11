@@ -30,5 +30,4 @@ export interface IUserAccount {
     name: string;
     lang: string;
     balance: number;
-
 }

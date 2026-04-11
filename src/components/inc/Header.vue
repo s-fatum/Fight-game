@@ -9,14 +9,32 @@
 				  <li class="header-nav-list__item"><a href="/" class="header__link">Change language</a></li>
 				</ul>
 			  </nav>
-		  <div class="header-dropdown">
-			  <ul class="header-dropdown-list">
-				<li class="header-dropdown-list">English</li>
-			  </ul>
-		  </div>
+		    <div class="header-dropdown">
+			    <ul class="header-dropdown-list">
+                    <li class="header-dropdown-list">English</li>
+                </ul>
+            </div>
+
+            <div class="user-info" v-if="account">
+                <span class="user-name">Игрок: {{ account.name }}</span>
+
+                <span class="user-balance">Баланс: {{ balance }} 🪙</span>
+            </div>
 		</div>
 	</header>
 </template>
+
+<script lang="ts">
+import { defineComponent } from 'vue';
+import { mapState } from 'pinia';
+import { useUserStore } from '@/store/user';
+
+export default defineComponent({
+    computed: {
+        ...mapState(useUserStore, ['account', 'balance']),
+    }
+});
+</script>
 
 <style lang="scss" scoped>
 .header {

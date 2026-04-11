@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import { useUserStore } from './user';
 import PlayerCore from "@/game/player/PlayerCore";
 import { BattleService } from "@/api/battle.service";
 import type { IFighterStats, IBattleScenario, GameState } from "@/types";
@@ -15,15 +16,17 @@ export const useBattleStore = defineStore('battle', {
         isProcessing: false,
         // Поля для MainPage
         diceValues: [] as number[],
-        userBalance: 1000,
-        betAmount: 100,
         isBossMode: false,
         purchasedDiceCount: 0
     }),
 
     getters: {
         nextDicePrice: (state) => (state.purchasedDiceCount + 1) * 10,
-        canBuyDice: (state) => state.userBalance >= (state.purchasedDiceCount + 1) * 10
+
+        canBuyDice(): boolean {
+            const userStore = useUserStore();
+            return userStore.balance >= this.nextDicePrice;
+        }
     },
 
     actions: {
@@ -42,13 +45,13 @@ export const useBattleStore = defineStore('battle', {
         },
 
         buyDice() {
+            const userStore = useUserStore(); // Доступ к другому стору внутри экшена
             const price = this.nextDicePrice;
-            if (this.userBalance >= price) {
-                this.userBalance -= price;
+
+            if (userStore.spendMoney(price)) {
                 this.purchasedDiceCount++;
                 const val = Math.floor(Math.random() * 6) + 1;
                 this.diceValues.push(val);
-                console.log(`🎲 [DICE] Куплен кубик за ${price}. Значение: ${val}`);
             }
         },
 

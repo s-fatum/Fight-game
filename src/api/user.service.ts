@@ -1,7 +1,7 @@
 import type { IUserAccount } from '@/types';
 
 export const UserService = {
-    async fetchFighters(): Promise<IUserAccount> {
+    async fetchUserData(): Promise<IUserAccount> {
 
         return {
             uid: 'shhj222-211',

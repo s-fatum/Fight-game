@@ -36,11 +36,6 @@
             <div class="bet-box">
                 <h3>Ставка и режим</h3>
                 <input type="number" v-model="betAmount" class="bet-input">
-
-                <label class="boss-label">
-                    <input type="checkbox" v-model="isBossMode">
-                    Режим БОССА (x4 награда)
-                </label>
             </div>
 
             <button @click="handleStart" class="main-button">В БОЙ!</button>
@@ -52,14 +47,14 @@
 import { defineComponent } from 'vue';
 import { mapState, mapActions, mapWritableState } from 'pinia';
 import { useBattleStore } from '@/store/battle';
+import { useUserStore } from '@/store/user';
 
 export default defineComponent({
     name: 'MainPage',
     computed: {
-        // Подключаем только читаемые свойства
         ...mapState(useBattleStore, ['availableFighters', 'diceValues', 'canBuyDice', 'nextDicePrice']),
-        // Подключаем изменяемые свойства (для v-model)
-        ...mapWritableState(useBattleStore, ['selectedFighterId', 'betAmount', 'isBossMode'])
+        ...mapState(useUserStore, ['balance']),
+        ...mapWritableState(useBattleStore, ['selectedFighterId', 'isBossMode']),
     },
     methods: {
         // Подключаем экшены

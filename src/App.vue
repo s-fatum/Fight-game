@@ -3,8 +3,8 @@
         <Header />
         <main class="main">
             <div class="container">
-                <MainPage v-if="currentScreen === 'main'" />
-                <BattlePage v-else-if="currentScreen === 'battle'" />
+                <MainPage v-if="currentScreen === 'main'" />zz
+                <BattlePage v-if="currentScreen === 'battle'" />
             </div>
         </main>
         <Footer />
@@ -13,17 +13,25 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { mapState } from 'pinia';
+import { mapActions, mapState } from 'pinia';
 import { useBattleStore } from '@/store/battle';
+import { useUserStore } from '@/store/user';
 import MainPage from '@/views/MainPage.vue';
 import BattlePage from '@/views/BattlePage.vue';
 import Header from '@/components/inc/Header.vue';
 import Footer from '@/components/inc/Footer.vue';
 
 export default defineComponent({
-    components: { MainPage, BattlePage , Header, Footer},
+    components: { MainPage, BattlePage, Header, Footer },
     computed: {
-        ...mapState(useBattleStore, ['currentScreen'])
-    }
+        ...mapState(useBattleStore, ['currentScreen']),
+    },
+    methods: {
+        ...mapActions(useUserStore, ['loadUserData']),
+    },
+
+    mounted() {
+        this.loadUserData();
+    },
 });
 </script>
