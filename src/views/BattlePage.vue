@@ -28,3 +28,24 @@ onMounted(async () => {
     }
 });
 </script>
+
+<style lang="scss" scoped>
+.arena {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 50px;
+}
+
+.overlay {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 99;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+</style>

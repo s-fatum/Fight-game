@@ -13,8 +13,6 @@
             <div class="player-card__pic">
                 <img :src="player.characterInfo.characterImg" :alt="player.characterInfo.characterName">
             </div>
-
-            <div v-if="player.isWinner" class="winner-label">🏆 ПОБЕДИТЕЛЬ</div>
         </div>
     </div>
 </template>

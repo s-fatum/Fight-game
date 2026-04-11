@@ -49,12 +49,4 @@ export default class PlayerCore {
             attacker.isWinner = true;
         }
     }
-
-    public playerSetAttack(): void {
-        this.attackButtonDisable = true;
-    }
-
-    public resetActions(): void {
-        this.attackButtonDisable = false;
-    }
 }
