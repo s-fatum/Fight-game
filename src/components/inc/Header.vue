@@ -4,7 +4,7 @@
 			<nav class="header-nav">
 				<ul class="header-nav-list">
 				  <li class="header-nav-list__item"><a href="/" class="header__link">Main page</a></li>
-				  <li class="header-nav-list__item"><a href="/game" class="header__link">Game</a></li>
+				  <li class="header-nav-list__item"><a href="/" class="header__link">Game</a></li>
 				  <li class="header-nav-list__item"><a href="/" class="header__link">Rules</a></li>
 				  <li class="header-nav-list__item"><a href="/" class="header__link">Change language</a></li>
 				</ul>
