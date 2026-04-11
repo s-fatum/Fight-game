@@ -12,7 +12,9 @@
     },
     "dependencies": {
         "@primeuix/themes": "^1.2.5",
+        "@types/gsap": "^1.20.2",
         "axios": "^1.15.0",
+        "gsap": "^3.14.2",
         "pinia": "^3.0.4",
         "primevue": "^4.4.1",
         "vite-plugin-vue-devtools": "^8.0.5",

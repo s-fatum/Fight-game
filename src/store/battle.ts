@@ -5,6 +5,7 @@ import type { IFighterStats, IBattleScenario, GameState } from "@/types";
 
 export const useBattleStore = defineStore('battle', {
     state: () => ({
+        currentScreen: 'main', // 'main' или 'battle'
         currentState: 'START' as GameState,
         availableFighters: [] as IFighterStats[],
         selectedFighterId: null as number | null,
@@ -26,6 +27,14 @@ export const useBattleStore = defineStore('battle', {
     },
 
     actions: {
+        setScreen(screenName: string) {
+            this.currentScreen = screenName;
+        },
+        async handleStart() {
+            await this.initBattle();
+            // Вместо router.push просто меняем стейт
+            this.setScreen('battle');
+        },
         async loadFighters() {
             console.log("📦 [LOAD] Загрузка бойцов...");
             this.availableFighters = await BattleService.fetchFighters();
@@ -74,7 +83,7 @@ export const useBattleStore = defineStore('battle', {
                     console.log(`💀 [FINISH] ${name} погиб`);
                     break;
                 }
-                await new Promise(r => setTimeout(r, 800));
+                await new Promise(r => setTimeout(r, 1500));
             }
             this.isProcessing = false;
             this.currentState = 'FINISH';

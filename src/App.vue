@@ -1,18 +1,21 @@
 <template>
-	<div class="app">
-		<Header />
-		<main class="main">
-			<div class="container">
-				<RouterView v-slot="{ Component }">
-				  <component :is="Component" />
-				</RouterView>
-			</div>
-		</main>
-		<Footer />
-	</div>
+    <div id="app">
+        <MainPage v-if="currentScreen === 'main'" />
+        <BattlePage v-else-if="currentScreen === 'battle'" />
+    </div>
 </template>
 
-<script setup lang="ts">
-  import Header from './components/inc/Header.vue';
-  import Footer from './components/inc/Footer.vue';
+<script lang="ts">
+import { defineComponent } from 'vue';
+import { mapState } from 'pinia';
+import { useBattleStore } from '@/store/battle';
+import MainPage from '@/views/MainPage.vue';
+import BattlePage from '@/views/BattlePage.vue';
+
+export default defineComponent({
+    components: { MainPage, BattlePage },
+    computed: {
+        ...mapState(useBattleStore, ['currentScreen'])
+    }
+});
 </script>

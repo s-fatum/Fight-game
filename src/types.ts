@@ -24,3 +24,11 @@ export interface IBattleScenario {
     initialBoosts: any[];
     rounds: IBattleRound[];
 }
+
+export interface IUserAccount {
+    uid: string;
+    name: string;
+    lang: string;
+    balance: number;
+
+}

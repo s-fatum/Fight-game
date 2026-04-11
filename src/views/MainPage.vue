@@ -63,7 +63,7 @@ export default defineComponent({
     },
     methods: {
         // Подключаем экшены
-        ...mapActions(useBattleStore, ['loadFighters', 'initBattle', 'buyDice']),
+        ...mapActions(useBattleStore, ['loadFighters', 'initBattle', 'buyDice', 'setScreen']),
 
         selectHero(id: number) {
             console.log(`🎯 [UI] Выбран ID: ${id}`);
@@ -73,7 +73,7 @@ export default defineComponent({
         async handleStart() {
             console.log("🖱 [UI] Нажата кнопка СТАРТ");
             await this.initBattle();
-            this.$router.push('/game');
+            this.setScreen('battle');
         }
     },
     mounted() {
