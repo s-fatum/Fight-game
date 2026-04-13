@@ -5,8 +5,10 @@ export interface IFighterStats {
     currentHealth: number;
     maxHealth: number;
     attack: number;
+    crit: number;
     avatar: string;
     healthColor: string;
+
     isWinner: boolean;
 }
 

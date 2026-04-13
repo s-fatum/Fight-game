@@ -17,7 +17,8 @@ export const useBattleStore = defineStore('battle', {
         // Поля для MainPage
         diceValues: [] as number[],
         isBossMode: false,
-        purchasedDiceCount: 0
+        purchasedDiceCount: 0,
+        betAmount: 0
     }),
 
     getters: {
@@ -92,6 +93,13 @@ export const useBattleStore = defineStore('battle', {
             }
             this.isProcessing = false;
             this.currentState = 'FINISH';
+        },
+        addToBet(amount: number) {
+            this.betAmount += amount;
+            console.log(`💰 [BET] Ставка увеличена на ${amount}. Итого: ${this.betAmount}`);
+        },
+        resetBet() {
+            this.betAmount = 0;
         }
     }
 });
