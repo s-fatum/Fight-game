@@ -75,19 +75,36 @@ import { useUserStore } from '@/store/user';
 export default defineComponent({
     name: 'MainPage',
     computed: {
-        ...mapState(useBattleStore, ['availableFighters', 'diceValues', 'canBuyDice', 'nextDicePrice']),
+        ...mapState(useBattleStore, [
+            'availableFighters',
+            'diceValues',
+            'canBuyDice',
+            'nextDicePrice',
+            'selectedFighterId',
+            'betAmount'
+        ]),
         ...mapState(useUserStore, ['balance']),
-        ...mapWritableState(useBattleStore, ['selectedFighterId', 'isBossMode', 'betAmount']),
     },
     methods: {
-        ...mapActions(useBattleStore, ['loadFighters', 'initBattle', 'buyDice', 'setScreen', 'addToBet', 'resetBet']),
+        ...mapActions(useBattleStore, [
+            'loadFighters',
+            'buyDice',
+            'setScreen',
+            'addToBet',
+            'resetBet',
+            'startGameCycle',
+            'setSelectedFighter'
+        ]),
+
         selectHero(id: number) {
-            this.selectedFighterId = id;
+            this.setSelectedFighter(id);
         },
+
         async handleStart() {
+            if (!this.selectedFighterId) return;
+
             console.log("🖱 [UI] Нажата кнопка СТАРТ");
-            await this.initBattle();
-            this.setScreen('battle');
+            await this.startGameCycle();
         }
     },
     mounted() {

@@ -12,7 +12,7 @@ export interface IFighterStats {
     isWinner: boolean;
 }
 
-export type GameState = 'START' | 'DICE_ROLL' | 'BATTLE_ROUND_1' | 'BATTLE_BOSS' | 'FINISH';
+export type GameState = 'START' | 'ROLLING_DICE' | 'BATTLE_ROUND' | 'GET_BOSS_PLAY' | 'BATTLE_BOSS' | 'FINISH';
 
 export interface IBattleRound {
     targetId: number;
