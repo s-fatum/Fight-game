@@ -3,7 +3,7 @@
         <Header />
         <main class="main">
             <div class="container">
-                <MainPage v-if="currentScreen === 'main'" />zz
+                <MainPage v-if="currentScreen === 'main'" />
                 <BattlePage v-if="currentScreen === 'battle'" />
             </div>
         </main>

@@ -11,14 +11,13 @@ export default class PlayerCore {
         currentHealth: number;
         maxHealth: number;
     };
-    public attackButtonDisable: boolean = false;
     public isWinner: boolean = false;
 
     constructor(fighter: IFighterStats) {
         this.playerId = fighter.id;
         this.characterInfo = {
             characterName: fighter.name,
-            characterImg: fighter.avatar,
+            characterImg: '/src/assets/characters/avatars/' + fighter.avatar,
         };
         this.playerHealth = {
             currentHealth: fighter.currentHealth,

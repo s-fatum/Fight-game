@@ -7,10 +7,6 @@
 
             <Player :player="store.enemy" />
         </div>
-
-        <div class="battle-status" v-if="store.isProcessing">
-            Идет раунд №{{ store.currentRoundIndex + 1 }}
-        </div>
     </div>
 </template>
 
@@ -32,7 +28,8 @@ onMounted(async () => {
 <style lang="scss" scoped>
 .arena {
     display: flex;
-    justify-content: space-around;
+    justify-content: center;
+    column-gap: 5%;
     margin-top: 50px;
 }
 

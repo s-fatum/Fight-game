@@ -23,9 +23,9 @@ export const useBattleStore = defineStore('battle', {
     getters: {
         nextDicePrice: (state) => (state.purchasedDiceCount + 1) * 10,
 
-        canBuyDice(): boolean {
+        canBuyDice(state): boolean {
             const userStore = useUserStore();
-            return userStore.balance >= this.nextDicePrice;
+            return userStore.balance >= this.nextDicePrice && state.purchasedDiceCount < 9;
         }
     },
 
@@ -74,6 +74,8 @@ export const useBattleStore = defineStore('battle', {
             if (!this.player || !this.enemy || !this.scenario) return;
             this.isProcessing = true;
             console.log("🚀 [BATTLE] Старт автоматического сражения");
+
+            await new Promise(r => setTimeout(r, 1500));
 
             for (const [idx, round] of this.scenario.rounds.entries()) {
                 const target = round.targetId === this.player.playerId ? this.player : this.enemy;

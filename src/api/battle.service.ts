@@ -4,13 +4,15 @@ export const BattleService = {
     async fetchFighters(): Promise<IFighterStats[]> {
         // Имитация данных из твоего старого ApiCharacters
         return [
-            { id: 1, name: 'Блокнот', currentHealth: 100, maxHealth: 100, attack: 15, avatar: 'notebook.png', healthColor: '#58964d', isWinner: false },
-            { id: 2, name: 'Ветровка', currentHealth: 100, maxHealth: 100, attack: 12, avatar: 'jacket.png', healthColor: '#58964d', isWinner: false },
-            { id: 3, name: 'Ручка', currentHealth: 80, maxHealth: 80, attack: 20, avatar: 'pen.png', healthColor: '#58964d', isWinner: false }
+            { id: 1, name: 'Блокнот', currentHealth: 100, maxHealth: 100, attack: 15, avatar: 'avatar-3.jpg', healthColor: '#58964d', isWinner: false },
+            { id: 2, name: 'Ветровка', currentHealth: 100, maxHealth: 100, attack: 12, avatar: 'avatar-4.jpg', healthColor: '#58964d', isWinner: false },
+            { id: 3, name: 'Ручка', currentHealth: 80, maxHealth: 80, attack: 20, avatar: 'avatar-5.jpg', healthColor: '#58964d', isWinner: false }
         ];
     },
 
     async generateScenario(diceCount: number, isBossMode: boolean): Promise<IBattleScenario> {
+
+        if (isBossMode) {}
         // Имитируем расчет на бэкенде
         return {
             winnerId: 1,

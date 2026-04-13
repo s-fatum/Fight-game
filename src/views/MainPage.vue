@@ -9,7 +9,7 @@
                 @click="selectHero(fighter.id)"
                 :class="['fighter-card', { 'selected': selectedFighterId === fighter.id }]"
             >
-                <img :src="fighter.avatar" :alt="fighter.name" class="fighter-card__img">
+                <img :src="'/src/assets/characters/avatars/' + fighter.avatar" :alt="fighter.name" class="fighter-card__img">
                 <p class="fighter-card__name">{{ fighter.name }}</p>
             </div>
         </div>
@@ -19,9 +19,7 @@
             <div class="boost-box">
                 <h3>Усиления (Кубики)</h3>
                 <div class="dice-display">
-          <span v-for="(dice, idx) in diceValues" :key="idx" class="die">
-            🎲 {{ dice }}
-          </span>
+                  <span class="die">Куплено 🎲 {{ diceValues.length }}</span>
                 </div>
                 <button
                     @click="buyDice"
@@ -30,7 +28,6 @@
                 >
                     Купить кубик ({{ nextDicePrice }} 💰)
                 </button>
-                <p>Шанс на успех: +{{ diceValues.length * 5 }}%</p>
             </div>
 
             <div class="bet-box">
