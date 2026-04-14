@@ -48,16 +48,88 @@ onMounted(async () => {
     margin-top: 50px;
 }
 
+/* Оверлей на весь экран */
 .overlay {
-    width: 100%;
-    height: 100%;
     position: absolute;
     top: 0;
     left: 0;
-    z-index: 99;
-    background: rgba(0, 0, 0, 0.8);
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px); /* Размытие заднего фона */
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 100;
+}
+
+/* Контейнер попапа */
+.popup {
+    background: linear-gradient(145deg, #2a2a3a, #1e1e2e);
+    border: 2px solid #4169E1;
+    border-radius: 20px;
+    padding: 40px;
+    width: 400px;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    color: #fff;
+
+    h2 {
+        font-size: 28px;
+        margin-bottom: 15px;
+        color: #ffd700; /* Золотой для заголовков */
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    p {
+        font-size: 18px;
+        line-height: 1.6;
+        margin-bottom: 25px;
+        color: #ccc;
+    }
+
+    hr {
+        border: 0;
+        border-top: 1px solid #333;
+        margin: 20px 0;
+    }
+}
+
+.actions, .popup-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    button {
+        padding: 15px;
+        border-radius: 10px;
+        border: none;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.2s, filter 0.2s;
+
+        &:hover {
+            transform: scale(1.02);
+            filter: brightness(1.2);
+        }
+    }
+
+    .btn-boss {
+        background: #ff4500;
+        color: white;
+        box-shadow: 0 4px 15px rgba(255, 69, 0, 0.3);
+    }
+
+    .btn-collect, .btn-main {
+        background: #4169E1;
+        color: white;
+    }
+
+    .btn-exit {
+        background: #333;
+        color: #aaa;
+        font-size: 14px;
+    }
 }
 </style>

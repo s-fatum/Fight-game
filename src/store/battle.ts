@@ -80,9 +80,13 @@ export const useBattleStore = defineStore('battle', {
             let enemyData;
             if (this.isBossMode) {
                 enemyData = {
-                    id: 999, name: 'Синий Ежедневник',
-                    avatar: 'boss.png', maxHealth: 500,
-                    attack: 40, crit: 20
+                    id: 999,
+                    name: 'Синий Ежедневник',
+                    avatar: '../boss.jpg',
+                    currentHealth: 500,
+                    maxHealth: 500,
+                    attack: 40,
+                    crit: 20
                 };
             } else {
                 enemyData = this.availableFighters.find(f => f.id !== this.selectedFighterId) || fData;
@@ -92,18 +96,23 @@ export const useBattleStore = defineStore('battle', {
         },
 
         async startGameCycle() {
-            if (!this.selectedFighterId) return;
+            if (!this.selectedFighterId || this.betAmount <= 0) return;
+
+            const userStore = useUserStore();
+
+            // Списываем ставку. Если денег внезапно не хватило — прерываем.
+            if (!userStore.spendMoney(this.betAmount)) {
+                console.error("❌ Недостаточно средств для ставки");
+                return;
+            }
 
             this.isProcessing = true;
-            this.currentState = 'ROLLING_DICE'; // Для анимации кубиков на фронте
+            this.currentState = 'ROLLING_DICE';
 
-            // Имитируем запрос на бэк (отправляем ставку, получаем кубики и сценарий)
+            // Имитация задержки (розыгрыш кубиков)
             await new Promise(r => setTimeout(r, 1500));
 
-            // Переопределяем кубики тем, что "прислал бэк"
             this.diceValues = Array.from({ length: this.purchasedDiceCount }, () => Math.floor(Math.random() * 6) + 1);
-
-            // Получаем сценарий первого боя
             this.scenario = await BattleService.generateScenario(this.purchasedDiceCount, false);
 
             await this.initBattle();
@@ -160,14 +169,20 @@ export const useBattleStore = defineStore('battle', {
             }
 
             this.currentState = 'FINISH';
-            // Сбрасываем ставку и кубики для новой игры
-            this.betAmount = 0;
-            this.purchasedDiceCount = 0;
-            this.diceValues = [];
+            this.resetGame();
         },
 
         setSelectedFighter(id: number) {
             this.selectedFighterId = id;
         },
+
+        resetGame() {
+            this.betAmount = 0;
+            this.purchasedDiceCount = 0;
+            this.isBossMode = false;
+            this.diceValues = [];
+
+            console.error("reset Game");
+        }
     }
 });

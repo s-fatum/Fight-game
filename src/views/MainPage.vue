@@ -61,14 +61,14 @@
                 </div>
             </div>
 
-            <button @click="handleStart" class="start-battle-btn">В БОЙ!</button>
+            <button @click="handleStart" :disabled="betAmount===0" class="start-battle-btn">В БОЙ!</button>
         </div>
     </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { mapState, mapActions, mapWritableState } from 'pinia';
+import { mapState, mapActions } from 'pinia';
 import { useBattleStore } from '@/store/battle';
 import { useUserStore } from '@/store/user';
 
@@ -236,7 +236,24 @@ export default defineComponent({
     border-radius: 12px;
     cursor: pointer;
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    &:hover { background: #4d79ff; }
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+        background: #4d79ff;
+        transform: translateY(-2px);
+    }
+
+    &:active:not(:disabled) {
+        transform: translateY(0);
+    }
+    &:disabled {
+        background: #555;
+        color: #888;
+        cursor: not-allowed;
+        box-shadow: none;
+        opacity: 0.6;
+        transform: none;
+    }
 }
 .dice-info {
     font-size: 20px;
