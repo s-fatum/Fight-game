@@ -147,7 +147,7 @@ export const useBattleStore = defineStore('battle', {
             this.player!.playerHealth.currentHealth = this.player!.playerHealth.maxHealth; // Лечим игрока
 
             this.currentState = 'BATTLE_BOSS';
-            this.runAutoBattle();
+            await this.runAutoBattle();
         },
 
         finalizeGame(isWin: boolean, isBoss: boolean = false) {

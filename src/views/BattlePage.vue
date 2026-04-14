@@ -6,7 +6,7 @@
             <Player :player="store.enemy" />
         </div>
 
-        <div v-if="store.currentState === 'BATTLE_BOSS'" class="overlay">
+        <div v-if="store.currentState === 'GET_BOSS_PLAY'" class="overlay">
             <div class="popup">
                 <h2>Победа! Коэф 1.5 получен 🏆</h2>
                 <p>Хотите сыграть суперигру с боссом <b>Синим Ежедневником</b> за x5?</p>
