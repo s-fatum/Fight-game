@@ -27,7 +27,7 @@
 </template>
 <script setup lang="ts">
 import { onMounted } from 'vue';
-import { useBattleStore } from '@/store/battle';
+import { useBattleStore } from '@/store/BattleStore.ts';
 import Player from '@/components/battle/Player.vue';
 
 const store = useBattleStore();

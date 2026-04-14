@@ -63,17 +63,38 @@
 
             <button @click="handleStart" :disabled="betAmount===0" class="start-battle-btn">В БОЙ!</button>
         </div>
+
+        <div v-if="isSpinningEnemy" class="enemy-roulette-overlay">
+            <div class="roulette-container">
+                <h3>Поиск противника...</h3>
+                <div class="spinner">
+                    <div class="spinner-track" :style="spinnerStyle">
+                        <div v-for="(enemy, idx) in roulettePool" :key="idx" class="spinner-item">
+                            <img :src="'/src/assets/characters/avatars/' + enemy.avatar" class="spinner-img">
+                        </div>
+                    </div>
+                </div>
+                <div class="target-pointer"></div>
+            </div>
+        </div>
     </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { mapState, mapActions } from 'pinia';
-import { useBattleStore } from '@/store/battle';
-import { useUserStore } from '@/store/user';
+import { useBattleStore } from '@/store/BattleStore.ts';
+import { useUserStore } from '@/store/UserStore.ts';
 
 export default defineComponent({
     name: 'MainPage',
+    data() {
+        return {
+            isSpinningEnemy: false,
+            roulettePool: [], // Список бойцов для анимации
+            offset: 0,        // Смещение для CSS transition
+        }
+    },
     computed: {
         ...mapState(useBattleStore, [
             'availableFighters',
@@ -103,8 +124,26 @@ export default defineComponent({
         async handleStart() {
             if (!this.selectedFighterId) return;
 
-            console.log("🖱 [UI] Нажата кнопка СТАРТ");
-            await this.startGameCycle();
+            this.roulettePool = this.availableFighters.filter(f => f.id !== this.selectedFighterId);
+            // Дублируем пул несколько раз для эффекта долгой прокрутки
+            this.roulettePool = [...this.roulettePool, ...this.roulettePool, ...this.roulettePool, ...this.roulettePool];
+
+            this.isSpinningEnemy = true;
+
+            // В фоне запускаем запрос в стор (списание денег, сценарий и т.д.)
+            const gamePromise = this.startGameCycle();
+
+            // Запускаем анимацию прокрутки
+            setTimeout(() => {
+                // Вычисляем смещение так, чтобы остановиться на нужном враге
+                // (После бэка мы уже будем знать, кто выпал, и подкрутим сюда)
+                this.offset = -1500; // Пример значения
+            }, 100);
+
+            // Ждем и анимацию, и ответ от бэка
+            await Promise.all([gamePromise, new Promise(r => setTimeout(r, 3000))]);
+
+            this.isSpinningEnemy = false;
         }
     },
     mounted() {
@@ -258,5 +297,34 @@ export default defineComponent({
 .dice-info {
     font-size: 20px;
     color: #2a2a3a;
+}
+
+.enemy-roulette-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+.spinner {
+    width: 200px;
+    height: 200px;
+    overflow: hidden;
+    border: 4px solid #ffd700;
+    position: relative;
+    background: #fff;
+}
+.spinner-track {
+    display: flex;
+    flex-direction: column;
+    transition: transform 3s cubic-bezier(0.12, 0, 0.39, 0); /* Эффект торможения слотов */
+}
+.spinner-item {
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 </style>

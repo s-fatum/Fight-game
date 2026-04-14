@@ -1,20 +1,20 @@
 import { defineStore } from 'pinia';
-import { useUserStore } from './user';
-import PlayerCore from "@/game/player/PlayerCore";
+import { useUserStore } from './UserStore.ts';
 import { BattleService } from "@/api/battle.service";
-import type { IFighterStats, IBattleScenario, GameState } from "@/types";
+import type { Fighter, BattleScenario, GameState } from "@/types";
 
 export const useBattleStore = defineStore('battle', {
     state: () => ({
-        currentScreen: 'main', // 'main' или 'battle'
+        currentScreen: 'main',
         currentState: 'START' as GameState,
-        availableFighters: [] as IFighterStats[],
+        availableFighters: [] as Fighter[],
         selectedFighterId: null as number | null,
-        player: null as PlayerCore | null,
-        enemy: null as PlayerCore | null,
-        scenario: null as IBattleScenario | null,
+
+        player: null as Fighter | null,
+        enemy: null as Fighter | null,
+
+        scenario: null as BattleScenario | null,
         isProcessing: false,
-        // Поля для MainPage
         diceValues: [] as number[],
         isBossMode: false,
         purchasedDiceCount: 0,
@@ -31,21 +31,16 @@ export const useBattleStore = defineStore('battle', {
     },
 
     actions: {
-        // 1. Навигация и инициализация данных
         setScreen(screenName: string) {
             this.currentScreen = screenName;
         },
 
         async loadFighters() {
-            console.log("📦 [LOAD] Загрузка бойцов...");
-            // Имитация API запроса
             this.availableFighters = await BattleService.fetchFighters();
         },
 
-        // 2. Логика ставок и кубиков (MainPage)
         addToBet(amount: number) {
             const userStore = useUserStore();
-            // Простая проверка: не даем ставить больше баланса
             if (userStore.balance >= this.betAmount + amount) {
                 this.betAmount += amount;
             }
@@ -61,63 +56,79 @@ export const useBattleStore = defineStore('battle', {
 
             if (userStore.spendMoney(price)) {
                 this.purchasedDiceCount++;
-                // Пока просто пушим визуал, в startGameCycle пересчитаем с бэка
                 this.diceValues.push(Math.floor(Math.random() * 6) + 1);
             }
         },
 
-        // 3. Ядро боевой логики
-        async initBattle() {
+        // Инициализация бойцов (теперь через простые объекты)
+        async initBattle(enemyDataFromSpin?: Fighter) {
             if (this.selectedFighterId === null) return;
 
             const fData = this.availableFighters.find(f => f.id === this.selectedFighterId);
             if (!fData) return;
 
-            // Создаем игрока
-            this.player = new PlayerCore(JSON.parse(JSON.stringify(fData)));
+            // Клонируем данные игрока
+            this.player = JSON.parse(JSON.stringify(fData));
 
-            // Создаем врага (если не босс — берем случайного другого персонажа)
-            let enemyData;
             if (this.isBossMode) {
-                enemyData = {
+                this.enemy = {
                     id: 999,
                     name: 'Синий Ежедневник',
                     avatar: '../boss.jpg',
-                    currentHealth: 500,
                     maxHealth: 500,
+                    currentHealth: 500,
                     attack: 40,
                     crit: 20
                 };
-            } else {
-                enemyData = this.availableFighters.find(f => f.id !== this.selectedFighterId) || fData;
+            } else if (enemyDataFromSpin) {
+                this.enemy = JSON.parse(JSON.stringify(enemyDataFromSpin));
             }
-
-            this.enemy = new PlayerCore(JSON.parse(JSON.stringify(enemyData)));
         },
 
         async startGameCycle() {
             if (!this.selectedFighterId || this.betAmount <= 0) return;
 
             const userStore = useUserStore();
-
-            // Списываем ставку. Если денег внезапно не хватило — прерываем.
-            if (!userStore.spendMoney(this.betAmount)) {
-                console.error("❌ Недостаточно средств для ставки");
-                return;
-            }
+            if (!userStore.spendMoney(this.betAmount)) return;
 
             this.isProcessing = true;
+
+            // Выбор врага для рулетки
+            const possibleEnemies = this.availableFighters.filter(f => f.id !== this.selectedFighterId);
+            const chosenEnemy = possibleEnemies[Math.floor(Math.random() * possibleEnemies.length)];
+
             this.currentState = 'ROLLING_DICE';
 
-            // Имитация задержки (розыгрыш кубиков)
-            await new Promise(r => setTimeout(r, 1500));
+            // Пауза на "Шоу"
+            await new Promise(r => setTimeout(r, 2500));
 
+            // Данные с "бэка"
             this.diceValues = Array.from({ length: this.purchasedDiceCount }, () => Math.floor(Math.random() * 6) + 1);
             this.scenario = await BattleService.generateScenario(this.purchasedDiceCount, false);
 
-            await this.initBattle();
+            // Инициализируем чистые объекты
+            await this.initBattle(chosenEnemy);
+
+            // Математика бустов
+            this.applyDiceBoosts();
+
             this.currentState = 'BATTLE_ROUND';
             this.setScreen('battle');
+        },
+
+        applyDiceBoosts() {
+            if (!this.player) return;
+
+            this.diceValues.forEach(val => {
+                if (val <= 2) {
+                    this.player!.maxHealth += 20;
+                    this.player!.currentHealth += 20;
+                } else if (val <= 4) {
+                    this.player!.attack += 5;
+                } else {
+                    this.player!.crit += 3;
+                }
+            });
         },
 
         async runAutoBattle() {
@@ -125,16 +136,19 @@ export const useBattleStore = defineStore('battle', {
             this.isProcessing = true;
 
             for (const round of this.scenario.rounds) {
-                const target = round.targetId === this.player.playerId ? this.player : this.enemy;
-                target.playerHealth.currentHealth = Math.max(0, target.playerHealth.currentHealth - round.damage);
+                // Ищем цель по ID
+                const target = round.targetId === this.player.id ? this.player : this.enemy;
 
-                if (target.playerHealth.currentHealth <= 0) break;
-                await new Promise(r => setTimeout(r, 1000)); // Пауза между ударами
+                // Наносим урон напрямую в свойство объекта
+                target.currentHealth = Math.max(0, target.currentHealth - round.damage);
+
+                if (target.currentHealth <= 0) break;
+                await new Promise(r => setTimeout(r, 1000));
             }
 
             this.isProcessing = false;
 
-            if (this.player.playerHealth.currentHealth > 0) {
+            if (this.player.currentHealth > 0) {
                 if (!this.isBossMode) {
                     this.currentState = 'GET_BOSS_PLAY';
                 } else {
@@ -149,11 +163,13 @@ export const useBattleStore = defineStore('battle', {
             this.isBossMode = true;
             this.isProcessing = true;
 
-            // Имитация запроса сценария для босса
             this.scenario = await BattleService.generateScenario(0, true);
 
-            await this.initBattle(); // Пересоздаем врага как босса
-            this.player!.playerHealth.currentHealth = this.player!.playerHealth.maxHealth; // Лечим игрока
+            await this.initBattle();
+            // Лечим игрока перед боссом
+            if (this.player) {
+                this.player.currentHealth = this.player.maxHealth;
+            }
 
             this.currentState = 'BATTLE_BOSS';
             await this.runAutoBattle();
@@ -169,6 +185,8 @@ export const useBattleStore = defineStore('battle', {
             }
 
             this.currentState = 'FINISH';
+            // В resetGame мы очистим ставку, но экран FINISH должен успеть показаться
+            // Обычно reset вызывают при закрытии попапа, но оставим как в твоем коде
             this.resetGame();
         },
 
@@ -181,8 +199,8 @@ export const useBattleStore = defineStore('battle', {
             this.purchasedDiceCount = 0;
             this.isBossMode = false;
             this.diceValues = [];
-
-            console.log("resetGame");
+            this.isProcessing = false;
+            console.log("resetGame done");
         }
     }
 });

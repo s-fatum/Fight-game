@@ -14,12 +14,12 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { mapActions, mapState } from 'pinia';
-import { useBattleStore } from '@/store/battle';
-import { useUserStore } from '@/store/user';
+import { useBattleStore } from '@/store/BattleStore.ts';
+import { useUserStore } from '@/store/UserStore.ts';
 import MainPage from '@/views/MainPage.vue';
 import BattlePage from '@/views/BattlePage.vue';
-import Header from '@/components/inc/Header.vue';
-import Footer from '@/components/inc/Footer.vue';
+import Header from '@/components/ui/Header.vue';
+import Footer from '@/components/ui/Footer.vue';
 
 export default defineComponent({
     components: { MainPage, BattlePage, Header, Footer },

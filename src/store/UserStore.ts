@@ -1,10 +1,10 @@
 import { defineStore } from 'pinia';
 import { UserService } from "@/api/user.service";
-import type { IUserAccount } from '@/types';
+import type { UserAccount } from '@/types';
 
 export const useUserStore = defineStore('user', {
     state: () => ({
-        account: null as IUserAccount | null,
+        account: null as UserAccount | null,
         balance: 0,
     }),
     actions: {

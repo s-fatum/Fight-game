@@ -1,34 +1,30 @@
-// types.ts
-export interface IFighterStats {
+export interface Fighter {
     id: number;
     name: string;
-    currentHealth: number;
+    avatar: string;
     maxHealth: number;
+    currentHealth: number;
     attack: number;
     crit: number;
-    avatar: string;
-    healthColor: string;
-
-    isWinner: boolean;
 }
 
 export type GameState = 'START' | 'ROLLING_DICE' | 'BATTLE_ROUND' | 'GET_BOSS_PLAY' | 'BATTLE_BOSS' | 'FINISH';
 
-export interface IBattleRound {
+export interface BattleRound {
     targetId: number;
     damage: number;
     attackerId: number;
     isCrit: boolean;
 }
 
-export interface IBattleScenario {
+export interface BattleScenario {
     winnerId: number;
     initialBoosts: any[];
-    rounds: IBattleRound[];
+    rounds: BattleRound[];
 }
 
-export interface IUserAccount {
-    uid: string;
+export interface UserAccount {
+    sid: string;
     name: string;
     lang: string;
     balance: number;
