@@ -182,7 +182,7 @@ export const useBattleStore = defineStore('battle', {
             this.isBossMode = false;
             this.diceValues = [];
 
-            console.error("reset Game");
+            console.log("resetGame");
         }
     }
 });
