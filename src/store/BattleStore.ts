@@ -18,12 +18,16 @@ export const useBattleStore = defineStore('battle', {
         diceValues: [] as number[],
         isBossMode: false,
         purchasedDiceCount: 0,
-        betAmount: 0
+        betAmount: 0,
+        currentRound: null as any,
+        isSlotSpinning: false,
+
+        // --- Болтливый лог ---
+        logs: [] as string[]
     }),
 
     getters: {
         nextDicePrice: (state) => (state.purchasedDiceCount + 1) * 10,
-
         canBuyDice(state): boolean {
             const userStore = useUserStore();
             return userStore.balance >= this.nextDicePrice && state.purchasedDiceCount < 9;
@@ -31,128 +35,124 @@ export const useBattleStore = defineStore('battle', {
     },
 
     actions: {
-        setScreen(screenName: string) {
-            this.currentScreen = screenName;
+        addLog(message: string) {
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            this.logs.unshift(`[${time}] ${message}`); // Новые логи сверху
+            console.log(`[LOG]: ${message}`);
         },
 
-        async loadFighters() {
-            this.availableFighters = await BattleService.fetchFighters();
-        },
-
-        addToBet(amount: number) {
+        async prepareBattleData() {
+            if (!this.selectedFighterId || this.betAmount <= 0) return null;
             const userStore = useUserStore();
-            if (userStore.balance >= this.betAmount + amount) {
-                this.betAmount += amount;
-            }
-        },
+            if (!userStore.spendMoney(this.betAmount)) return null;
 
-        resetBet() {
-            this.betAmount = 0;
-        },
-
-        buyDice() {
-            const userStore = useUserStore();
-            const price = this.nextDicePrice;
-
-            if (userStore.spendMoney(price)) {
-                this.purchasedDiceCount++;
-                this.diceValues.push(Math.floor(Math.random() * 6) + 1);
-            }
-        },
-
-        // Инициализация бойцов (теперь через простые объекты)
-        async initBattle(enemyDataFromSpin?: Fighter) {
-            if (this.selectedFighterId === null) return;
-
-            const fData = this.availableFighters.find(f => f.id === this.selectedFighterId);
-            if (!fData) return;
-
-            // Клонируем данные игрока
-            this.player = JSON.parse(JSON.stringify(fData));
-
-            if (this.isBossMode) {
-                this.enemy = {
-                    id: 999,
-                    name: 'Синий Ежедневник',
-                    avatar: '../boss.jpg',
-                    maxHealth: 500,
-                    currentHealth: 500,
-                    attack: 40,
-                    crit: 20
-                };
-            } else if (enemyDataFromSpin) {
-                this.enemy = JSON.parse(JSON.stringify(enemyDataFromSpin));
-            }
-        },
-
-        async startGameCycle() {
-            if (!this.selectedFighterId || this.betAmount <= 0) return;
-
-            const userStore = useUserStore();
-            if (!userStore.spendMoney(this.betAmount)) return;
-
+            this.logs = []; // Чистим старые логи
+            this.addLog("Подготовка данных боя...");
             this.isProcessing = true;
+            this.isBossMode = false;
+            this.currentState = 'SPINNING_ENEMY';
 
-            // Выбор врага для рулетки
-            const possibleEnemies = this.availableFighters.filter(f => f.id !== this.selectedFighterId);
-            const chosenEnemy = possibleEnemies[Math.floor(Math.random() * possibleEnemies.length)];
+            const opponents = this.availableFighters.filter(f => f.id !== this.selectedFighterId);
+            const chosenEnemy = opponents[Math.floor(Math.random() * opponents.length)];
 
-            this.currentState = 'ROLLING_DICE';
-
-            // Пауза на "Шоу"
-            await new Promise(r => setTimeout(r, 2500));
-
-            // Данные с "бэка"
             this.diceValues = Array.from({ length: this.purchasedDiceCount }, () => Math.floor(Math.random() * 6) + 1);
             this.scenario = await BattleService.generateScenario(this.purchasedDiceCount, false);
 
-            // Инициализируем чистые объекты
-            await this.initBattle(chosenEnemy);
+            const playerStats = this.availableFighters.find(f => f.id === this.selectedFighterId);
+            this.player = JSON.parse(JSON.stringify(playerStats));
+            this.enemy = JSON.parse(JSON.stringify(chosenEnemy));
 
-            // Математика бустов
-            this.applyDiceBoosts();
+            this.addLog(`Противник определен: ${this.enemy?.name}`);
+            return chosenEnemy;
+        },
 
-            this.currentState = 'BATTLE_ROUND';
-            this.setScreen('battle');
+        startDiceRolling() {
+            this.addLog("Бросаем кубики усиления...");
+            this.currentState = 'ROLLING_DICE';
         },
 
         applyDiceBoosts() {
-            if (!this.player) return;
+            this.currentState = 'APPLYING_BOOSTS';
+            if (!this.player || this.diceValues.length === 0) return;
 
-            this.diceValues.forEach(val => {
-                if (val <= 2) {
-                    this.player!.maxHealth += 20;
-                    this.player!.currentHealth += 20;
-                } else if (val <= 4) {
-                    this.player!.attack += 5;
-                } else {
-                    this.player!.crit += 3;
-                }
-            });
+            const totalDice = this.diceValues.reduce((a, b) => a + b, 0);
+            const attackBonus = totalDice * 2;
+
+            this.player.attack += attackBonus;
+            this.addLog(`Кубики дали бонус к атаке: +${attackBonus}`);
+        },
+
+        async startMainFight() {
+            this.addLog("Вход на арену. Начало раунда!");
+            this.currentState = 'BATTLE_ROUND';
+            this.setScreen('battle');
+
+            // Ждем небольшую паузу, чтобы Vue успел переключить экран
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Запускаем цикл боя
+            await this.runAutoBattle();
         },
 
         async runAutoBattle() {
             if (!this.player || !this.enemy || !this.scenario) return;
+
+            // Защита от двойного запуска
+            if (this.isProcessing && this.currentRound) return;
             this.isProcessing = true;
 
             for (const round of this.scenario.rounds) {
-                // Ищем цель по ID
-                const target = round.targetId === this.player.id ? this.player : this.enemy;
+                // Проверка: жив ли еще кто-то?
+                if (this.player.currentHealth <= 0 || this.enemy.currentHealth <= 0) break;
 
-                // Наносим урон напрямую в свойство объекта
+                this.currentRound = round; // Передаем данные раунда в UI (для слотов)
+
+                // --- ЭТАП СЛОТОВ ---
+                this.isSlotSpinning = true;
+                this.addLog(`Крутим слоты для хода...`);
+
+                // Ждем анимацию слотов (например, 2 секунды)
+                await new Promise(r => setTimeout(r, 2000));
+                this.isSlotSpinning = false;
+
+                // --- ЭТАП УРОНА ---
+                const isPlayerAttacker = round.attackerId === 1;
+                const target = isPlayerAttacker ? this.enemy : this.player;
+                const attackerName = isPlayerAttacker ? this.player.name : this.enemy.name;
+
                 target.currentHealth = Math.max(0, target.currentHealth - round.damage);
+                this.addLog(`[${attackerName}] наносит ${round.damage} урона!`);
 
-                if (target.currentHealth <= 0) break;
-                await new Promise(r => setTimeout(r, 1000));
+                if (target.currentHealth <= 0) {
+                    this.addLog(`💀 ${target.name} пал!`);
+                    break; // ПРЕРЫВАЕМ ЦИКЛ НЕМЕДЛЕННО
+                }
+
+                await new Promise(r => setTimeout(r, 500)); // Пауза между ходами
             }
 
             this.isProcessing = false;
+            this.finishBattleLogic();
+        },
 
-            if (this.player.currentHealth > 0) {
-                if (!this.isBossMode) {
-                    this.currentState = 'GET_BOSS_PLAY';
-                } else {
+        finishBattleLogic() {
+            if (this.player!.currentHealth > 0) {
+                this.currentState = 'GET_BOSS_PROMPT';
+            } else {
+                this.finalizeGame(false);
+            }
+        },
+
+        handleBattleEnd() {
+            const isPlayerAlive = (this.player?.currentHealth ?? 0) > 0;
+            this.addLog(isPlayerAlive ? "Вы победили в этом раунде!" : "Вас сокрушили...");
+
+            if (isPlayerAlive) {
+                if (this.isBossMode) {
                     this.finalizeGame(true, true);
+                } else {
+                    this.addLog("Система: Ожидание решения по Суперигре...");
+                    this.currentState = 'GET_BOSS_PROMPT';
                 }
             } else {
                 this.finalizeGame(false);
@@ -160,47 +160,65 @@ export const useBattleStore = defineStore('battle', {
         },
 
         async startBossBattle() {
+            this.addLog("ВНИМАНИЕ: Появление БОССА!");
             this.isBossMode = true;
-            this.isProcessing = true;
-
-            this.scenario = await BattleService.generateScenario(0, true);
-
-            await this.initBattle();
-            // Лечим игрока перед боссом
-            if (this.player) {
-                this.player.currentHealth = this.player.maxHealth;
-            }
-
             this.currentState = 'BATTLE_BOSS';
+
+            this.enemy = {
+                id: 999,
+                name: 'СИНИЙ ЕЖЕДНЕВНИК',
+                currentHealth: 300,
+                maxHealth: 300,
+                attack: 30,
+                avatar: 'boss.jpg',
+                crit: 15
+            };
+
+            if (this.player) this.player.currentHealth = this.player.maxHealth;
+            this.scenario = await BattleService.generateScenario(0, true);
             await this.runAutoBattle();
         },
 
         finalizeGame(isWin: boolean, isBoss: boolean = false) {
             const userStore = useUserStore();
-            let reward = 0;
-
             if (isWin) {
-                reward = isBoss ? this.betAmount * 5 : this.betAmount * 1.5;
+                const reward = Math.floor(this.betAmount * (isBoss ? 5 : 1.5));
                 userStore.balance += reward;
+                this.addLog(`Итог: Победа! Зачислено ${reward} 🪙`);
+                this.currentState = 'FINISH_WIN';
+            } else {
+                this.addLog("Итог: Поражение. Ставка потеряна.");
+                this.currentState = 'FINISH_LOSE';
             }
-
-            this.currentState = 'FINISH';
-            // В resetGame мы очистим ставку, но экран FINISH должен успеть показаться
-            // Обычно reset вызывают при закрытии попапа, но оставим как в твоем коде
-            this.resetGame();
+            this.isProcessing = false;
         },
 
-        setSelectedFighter(id: number) {
-            this.selectedFighterId = id;
-        },
-
-        resetGame() {
+        // Вызывать ТОЛЬКО при нажатии кнопки "В меню" в попапе
+        resetAfterBattle() {
+            this.addLog("Возврат в главное меню.");
             this.betAmount = 0;
             this.purchasedDiceCount = 0;
             this.isBossMode = false;
             this.diceValues = [];
-            this.isProcessing = false;
-            console.log("resetGame done");
-        }
+            this.currentState = 'START';
+            this.setScreen('main');
+        },
+
+        setScreen(screenName: string) { this.currentScreen = screenName; },
+        async loadFighters() { this.availableFighters = await BattleService.fetchFighters(); },
+        addToBet(amount: number) { this.storeBet(amount); },
+        storeBet(amount: number) {
+            const userStore = useUserStore();
+            if (userStore.balance >= this.betAmount + amount) this.betAmount += amount;
+        },
+        resetBet() { this.betAmount = 0; },
+        buyDice() {
+            const userStore = useUserStore();
+            if (this.canBuyDice) {
+                userStore.spendMoney(this.nextDicePrice);
+                this.purchasedDiceCount++;
+            }
+        },
+        setSelectedFighter(id: number) { this.selectedFighterId = id; }
     }
 });

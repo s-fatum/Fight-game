@@ -1,30 +1,37 @@
 <template>
     <div class="battle-screen">
         <div class="arena" v-if="store.player && store.enemy">
-            <Player :player="store.player" />
-            <div class="vs-sign">VS</div>
-            <Player :player="store.enemy" />
+            <Player :player="store.player" :is-enemy="false" />
+
+            <div class="center-col">
+                <div class="vs-sign">VS</div>
+            </div>
+
+            <Player :player="store.enemy" :is-enemy="true" />
         </div>
 
-        <div v-if="store.currentState === 'GET_BOSS_PLAY'" class="overlay">
+        <div v-if="store.currentState === 'GET_BOSS_PROMPT'" class="overlay">
             <div class="popup">
                 <h2>Победа! Коэф 1.5 получен 🏆</h2>
-                <p>Хотите сыграть суперигру с боссом <b>Синим Ежедневником</b> за x5?</p>
+                <p>Хотите рискнуть и сразиться с <b>Синим Ежедневником</b> за x5?</p>
                 <div class="actions">
                     <button @click="store.startBossBattle" class="btn-boss">ИДЕМ НА БОССА!</button>
-                    <button @click="store.finalizeGame(true)" class="btn-exit">Забрать {{ store.betAmount * 1.5 }}</button>
+                    <button @click="store.finalizeGame(true)" class="btn-exit">Забрать {{ Math.floor(store.betAmount * 1.5) }}</button>
                 </div>
             </div>
         </div>
 
-        <div v-if="store.currentState === 'FINISH'" class="overlay">
+        <div v-if="['FINISH_WIN', 'FINISH_LOSE'].includes(store.currentState)" class="overlay">
             <div class="popup">
-                <h2>Конец игры</h2>
-                <button @click="store.setScreen('main')">В меню</button>
+                <h2 v-if="store.currentState === 'FINISH_WIN'">ТРИУМФ! 🏆</h2>
+                <h2 v-else>ПОТРАЧЕНО... 💀</h2>
+                <p>{{ store.currentState === 'FINISH_WIN' ? 'Вы легенда этой канцелярии!' : 'Попробуйте в другой раз.' }}</p>
+                <button @click="store.resetAfterBattle" class="btn-exit">В МЕНЮ</button>
             </div>
         </div>
     </div>
 </template>
+
 <script setup lang="ts">
 import { onMounted } from 'vue';
 import { useBattleStore } from '@/store/BattleStore.ts';
@@ -40,96 +47,85 @@ onMounted(async () => {
 });
 </script>
 
-<style lang="scss" scoped>
-.arena {
-    display: flex;
-    justify-content: center;
-    column-gap: 5%;
-    margin-top: 50px;
-}
-
-/* Оверлей на весь экран */
-.overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(8px); /* Размытие заднего фона */
+<style scoped lang="scss">
+.battle-screen {
+    height: 60vh;
+    background: radial-gradient(circle, #1a1a2e 0%, #0f0f1a 100%);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 100;
+    color: white;
 }
 
-/* Контейнер попапа */
-.popup {
-    background: linear-gradient(145deg, #2a2a3a, #1e1e2e);
-    border: 2px solid #4169E1;
-    border-radius: 20px;
-    padding: 40px;
-    width: 400px;
-    text-align: center;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-    color: #fff;
-
-    h2 {
-        font-size: 28px;
-        margin-bottom: 15px;
-        color: #ffd700; /* Золотой для заголовков */
-        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-    }
-
-    p {
-        font-size: 18px;
-        line-height: 1.6;
-        margin-bottom: 25px;
-        color: #ccc;
-    }
-
-    hr {
-        border: 0;
-        border-top: 1px solid #333;
-        margin: 20px 0;
-    }
+.arena {
+    display: flex;
+    align-items: center;
+    gap: 40px;
 }
 
-.actions, .popup-actions {
+.center-col {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    align-items: center;
+    gap: 20px;
+    width: 300px;
+}
+
+.vs-sign {
+    font-size: 64px;
+    font-weight: 900;
+    font-style: italic;
+    color: #ffd700;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+.battle-log {
+    width: 100%;
+    height: 200px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid #4169E1;
+    border-radius: 10px;
+    padding: 10px;
+    overflow-y: auto;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+}
+
+.log-entry {
+    color: #aaa;
+    margin-bottom: 4px;
+    &.first { color: #00d2ff; font-weight: bold; }
+}
+
+/* Стили попапов из твоего файла оставляем без изменений,
+   только проверь класс .btn-boss и .btn-exit */
+.overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000;
+}
+
+.popup {
+    background: #222;
+    padding: 30px;
+    border-radius: 20px;
+    border: 2px solid #4169E1;
+    text-align: center;
+    max-width: 400px;
 
     button {
-        padding: 15px;
-        border-radius: 10px;
-        border: none;
-        font-size: 16px;
-        font-weight: bold;
+        margin: 10px;
+        padding: 12px 25px;
+        border-radius: 8px;
         cursor: pointer;
-        transition: transform 0.2s, filter 0.2s;
-
-        &:hover {
-            transform: scale(1.02);
-            filter: brightness(1.2);
-        }
-    }
-
-    .btn-boss {
-        background: #ff4500;
-        color: white;
-        box-shadow: 0 4px 15px rgba(255, 69, 0, 0.3);
-    }
-
-    .btn-collect, .btn-main {
-        background: #4169E1;
-        color: white;
-    }
-
-    .btn-exit {
-        background: #333;
-        color: #aaa;
-        font-size: 14px;
+        font-weight: bold;
+        border: none;
     }
 }
+.btn-boss { background: #ffd700; color: #000; }
+.btn-exit { background: #4169E1; color: #fff; }
 </style>

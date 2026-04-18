@@ -52,25 +52,36 @@ export const BattleService = {
         ];
     },
 
-    async generateScenario(diceCount: number, isBossMode: boolean): Promise<BattleScenario> {
+    async startBattle(playerFighterId: number, diceCount: number): Promise<{
+        enemy: Fighter,
+        diceValues: number[],
+        scenario: BattleScenario
+    }> {
+        // 1. Получаем список всех, кроме игрока
+        const all = await this.fetchFighters();
+        const possibleEnemies = all.filter(f => f.id !== playerFighterId);
 
-        if (isBossMode) {}
-        // Имитируем расчет на бэкенде
+        // 2. Рандомим врага (на бэке это был бы результат выборки из БД)
+        const enemy = possibleEnemies[Math.floor(Math.random() * possibleEnemies.length)]!;
+
+        // 3. Генерируем значения для купленных кубиков (1-6)
+        const diceValues = Array.from({ length: diceCount }, () => Math.floor(Math.random() * 6) + 1);
+
+        // 4. Генерируем сценарий боя
+        const scenario = await this.generateScenario(diceCount, false);
+
+        return { enemy, diceValues, scenario };
+    },
+
+    async generateScenario(diceCount: number, isBossMode: boolean): Promise<BattleScenario> {
         return {
-            winnerId: 1,
-            initialBoosts: [{ type: 'attack', value: diceCount * 2 }],
+            winnerId: 1, // Пусть 1 всегда будет "Игрок"
+            initialBoosts: [],
             rounds: [
-                { attackerId: 1, targetId: 2, damage: 10, isCrit: false }, // Ход 1: Легкий удар (HP 2: 90)
-                { attackerId: 2, targetId: 1, damage: 12, isCrit: false }, // Ход 2: Ответка (HP 1: 88)
-                { attackerId: 1, targetId: 2, damage: 15, isCrit: false }, // Ход 3: Усиление (HP 2: 75)
-                { attackerId: 2, targetId: 1, damage: 8,  isCrit: false }, // Ход 4: Слабый тычок (HP 1: 80)
-                { attackerId: 1, targetId: 2, damage: 20, isCrit: false }, // Ход 5: Желтая зона! (HP 2: 55)
-                { attackerId: 2, targetId: 1, damage: 15, isCrit: false }, // Ход 6: Враг злится (HP 1: 65)
-                { attackerId: 1, targetId: 2, damage: 15, isCrit: false }, // Ход 7: Почти финиш (HP 2: 40)
-                { attackerId: 2, targetId: 1, damage: 30, isCrit: true },  // Ход 8: Внезапный крит от врага! (HP 1: 35)
-                { attackerId: 1, targetId: 2, damage: 25, isCrit: false }, // Ход 9: Красная зона у врага! (HP 2: 15)
-                { attackerId: 2, targetId: 1, damage: 5,  isCrit: false }, // Ход 10: Последняя попытка (HP 1: 30)
-                { attackerId: 1, targetId: 2, damage: 20, isCrit: true }   // Ход 11: Финальный КРИТ (HP 2: 0)
+                { attackerId: 1, targetId: 2, damage: 20, isCrit: false }, // Игрок бьет Врага
+                { attackerId: 2, targetId: 1, damage: 15, isCrit: true },  // Враг бьет Игрока
+                { attackerId: 1, targetId: 2, damage: 20, isCrit: false }, // Игрок бьет Врага
+                { attackerId: 1, targetId: 2, damage: 80, isCrit: true }  // Игрок добивает
             ]
         };
     }
