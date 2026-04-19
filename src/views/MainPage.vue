@@ -77,14 +77,23 @@
                 </div>
             </div>
         </div>
+
+        <div class="main-page">
+            <DiceOverlay :values="[1, 2, 3, 4, 5, 6, 1, 2, 3]" />
+        </div>
     </div>
 </template>
 
 <script lang="ts">
+import { defineComponent } from 'vue';
 import { useBattleStore } from '@/store/BattleStore.ts';
+import DiceOverlay from '@/components/dices/DiceOverlay.vue'; // Импортируем
 
-export default {
+export default defineComponent({
     name: 'MainPage',
+    components: {
+        DiceOverlay
+    },
     data() {
         return {
             isSpinningEnemy: false,
@@ -146,7 +155,7 @@ export default {
     async mounted() {
         await this.store.loadFighters();
     }
-};
+});
 </script>
 
 <style scoped lang="scss">

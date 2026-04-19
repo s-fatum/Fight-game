@@ -66,11 +66,6 @@ export const useBattleStore = defineStore('battle', {
             return chosenEnemy;
         },
 
-        startDiceRolling() {
-            this.addLog("Бросаем кубики усиления...");
-            this.currentState = 'ROLLING_DICE';
-        },
-
         applyDiceBoosts() {
             this.currentState = 'APPLYING_BOOSTS';
             if (!this.player || this.diceValues.length === 0) return;
@@ -219,6 +214,15 @@ export const useBattleStore = defineStore('battle', {
                 this.purchasedDiceCount++;
             }
         },
-        setSelectedFighter(id: number) { this.selectedFighterId = id; }
+        setSelectedFighter(id: number) { this.selectedFighterId = id; },
+
+        async startDiceRolling() {
+            this.currentState = 'ROLLING_DICE';
+        },
+
+        confirmDiceResults() {
+            this.applyDiceBoosts(); // Применяем баффы к статам
+            this.currentState = 'APPLYING_BOOSTS';
+        }
     }
 });
