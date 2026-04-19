@@ -78,9 +78,7 @@
             </div>
         </div>
 
-        <div class="main-page">
-            <DiceOverlay :values="[1, 2, 3, 4, 5, 6, 1, 2, 3]" />
-        </div>
+        <DiceOverlay :values="['heart', 'fist', 'crit', 'fist']" />
     </div>
 </template>
 
@@ -119,7 +117,7 @@ export default defineComponent({
             await this.runEnemyRoulette(chosenEnemy);
 
             // 3. Кубики
-            this.store.startDiceRolling();
+            await this.store.startDiceRolling();
             await new Promise(r => setTimeout(r, 2000));
 
             // 4. Бусты
