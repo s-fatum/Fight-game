@@ -120,7 +120,7 @@ export default defineComponent({
             const groups: Record<string, DiceSprite[]> = { heart: [], fist: [], crit: [] };
             const colors: Record<string, number> = { heart: 0xFF3232, fist: 0x3296FF, crit: 0xFFD232 };
 
-            // Группируем кубики по типу
+            // 1. Группируем кубики по типу
             this.diceSprites?.forEach(s => {
                 const type = s?.diceType;
                 if (type && groups[type]) {
@@ -128,7 +128,6 @@ export default defineComponent({
                 }
             });
 
-            // ОБЪЯВЛЯЕМ ПЕРЕМЕННУЮ ТУТ
             let timelineDelay = 0;
 
             Object.entries(groups).forEach(([type, sprites]) => {
@@ -138,36 +137,38 @@ export default defineComponent({
                 const rawShadows = sprites.map(s => toRaw(s.shadow));
                 const color = colors[type] ?? 0xFFFFFF;
 
-                // Принудительно чиним масштаб по осям (привет ресечу)
+                // Подготовка состояния
                 rawSprites.forEach(s => {
-                    s.scale.x = 0.4;
-                    s.scale.y = 0.4;
+                    if (!s) return;
+                    s.scale.set(0.4);
                     s.alpha = 1;
                     s.renderable = true;
                     s.zIndex = 100;
                 });
 
                 rawShadows.forEach(sh => {
+                    if (!sh) return;
                     sh.tint = color;
-                    sh.scale.x = 0.4;
-                    sh.scale.y = 0.4;
+                    sh.scale.set(0.4);
                     sh.alpha = 0;
                     sh.zIndex = 99;
                 });
 
-                this.app.stage.sortChildren();
+                this.app?.stage.sortChildren();
 
+                // ОБЪЯВЛЯЕМ ТАЙМЛАЙН
                 const tl = gsap.timeline({ delay: timelineDelay });
 
-                // 1. Анимируем кубики
+                // 1. Анимация появления кубиков
                 rawSprites.forEach((s, index) => {
+                    if (!s) return;
                     tl.to(s, {
                         y: "-=25",
                         duration: 0.4,
                         ease: "power2.out"
-                    }, index * 0.05); // Ручной стаггер через смещение в таймлайне
+                    }, index * 0.05);
 
-                    tl.to(s.scale, { // Анимируем объект scale напрямую
+                    tl.to(s.scale, {
                         x: 0.45,
                         y: 0.45,
                         duration: 0.4,
@@ -175,15 +176,16 @@ export default defineComponent({
                     }, index * 0.05);
                 });
 
-                // 2. Анимируем тени (проявление и рост)
+                // 2. Анимация теней
                 rawShadows.forEach((sh) => {
+                    if (!sh) return;
                     tl.to(sh, {
                         alpha: 0.8,
                         duration: 0.3,
                         ease: "power2.out"
                     }, 0);
 
-                    tl.to(sh.scale, { // Анимируем объект scale тени напрямую
+                    tl.to(sh.scale, {
                         x: 1.2,
                         y: 1.2,
                         duration: 0.3,
@@ -191,29 +193,45 @@ export default defineComponent({
                     }, 0);
                 });
 
-                timelineDelay += 0.5;
+                // 3. Улет и схлопывание (фикс Missing Plugin и Unused property)
+                const allObjects = [...rawSprites, ...rawShadows];
 
-                // Улет и схлопывание в точку
-                tl.to([...rawSprites, ...rawShadows], {
+                // Анимируем позицию и прозрачность всех сразу
+                tl.to(allObjects, {
                     alpha: 0,
-                    "scale.x": 0.01,
-                    "scale.y": 0.01,
-                    y: (_: any, target: any) => (target instanceof PIXI.Sprite) ? "-=100" : "-=60",
+                    y: (_, target) => (target instanceof PIXI.Sprite) ? "-=100" : "-=60",
                     duration: 0.5,
                     ease: "power2.in",
                     stagger: 0.03
-                }, "+=0.5")
-                    .add(() => {
-                        rawSprites.forEach(s => {
-                            if (s.shadow && !s.shadow.destroyed) s.shadow.destroy({ texture: false });
-                            if (!s.destroyed) s.destroy({ texture: false });
-                        });
+                }, "+=0.5");
+
+                // Анимируем scale напрямую через объекты для обхода ошибки плагина
+                allObjects.forEach((obj, idx) => {
+                    if (obj?.scale) {
+                        tl.to(obj.scale, {
+                            x: 0.01,
+                            y: 0.01,
+                            duration: 0.5,
+                            ease: "power2.in"
+                        }, `+=0.5-=${(allObjects.length - idx) * 0.03}`);
+                        // Используем относительное смещение, чтобы совпасть со стаггером
+                    }
+                });
+
+                // Очистка памяти через .add() чтобы IDE не ругалась на unused onComplete
+                tl.add(() => {
+                    rawSprites.forEach(s => {
+                        if (s.shadow && !s.shadow.destroyed) s.shadow.destroy({ texture: false });
+                        if (!s.destroyed) s.destroy({ texture: false });
                     });
+                });
 
                 timelineDelay += 1.3;
             });
 
-            setTimeout(() => { this.diceSprites = []; }, timelineDelay * 1000 + 1000);
+            setTimeout(() => {
+                this.diceSprites = [];
+            }, timelineDelay * 1000 + 1000);
         }
     },
     beforeUnmount() {
