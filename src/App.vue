@@ -33,3 +33,32 @@ export default defineComponent({
     },
 });
 </script>
+
+<style lang="scss">
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden; /* Глобально убираем скролл, чтобы приложение не "гуляло" */
+    background: #0a0f14; /* Цвет-заглушка в тон фона */
+}
+
+.app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+    position: relative;
+}
+
+.main {
+    flex: 1;
+    position: relative;
+    overflow: hidden; /* Контент страницы сам будет управлять своим скроллом, если надо */
+}
+
+.container {
+    height: 100%;
+    width: 100%;
+}
+</style>
