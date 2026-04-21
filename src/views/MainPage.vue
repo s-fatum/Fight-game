@@ -78,7 +78,9 @@
             </div>
         </div>
 
-        <DiceOverlay :values="['heart', 'fist', 'crit', 'fist', 'heart', 'fist', 'crit', 'heart', 'fist']" />
+    <!--
+    <DiceOverlay :values="['heart', 'fist', 'crit', 'fist', 'heart', 'fist', 'crit', 'heart', 'fist']" />
+    -->
     </div>
 </template>
 
