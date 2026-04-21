@@ -1,12 +1,13 @@
 <template>
-    <div ref="diceOverlay" :class="['dice-overlay', { 'debug-mode': isDebug }]">
+    <div ref="diceOverlay" :class="['dice-overlay']">
         <div ref="pixiContainer" class="pixi-wrapper"></div>
     </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, toRaw } from 'vue';
+import { defineComponent, toRaw, markRaw } from 'vue';
 import * as PIXI from 'pixi.js';
+import { pixiManager } from '@/core/pixiApp';
 import gsap from 'gsap';
 
 import imgHeart from '@/assets/dice/dice_heart.png';
@@ -25,41 +26,44 @@ export default defineComponent({
     },
     data() {
         return {
-            app: new PIXI.Application(),
             diceSprites: [] as DiceSprite[],
-            isDebug: true // Включил обратно для теста подложки
+            pixiApp: null as any
         };
     },
     async mounted() {
-        await this.initPixi();
+        this.pixiApp = markRaw(await pixiManager.init());
+
+        const container = this.$refs.pixiContainer as HTMLDivElement;
+        if (container && this.pixiApp.canvas) {
+            container.appendChild(this.pixiApp.canvas);
+        }
+
+        await this.$nextTick(async () => {
+            pixiManager.forceResize();
+            pixiManager.resume();
+            await this.initPixi();
+        });
     },
+
     methods: {
         async initPixi() {
-            await this.app.init({
-                resizeTo: window,
-                backgroundAlpha: 0,
-                antialias: true,
-                resolution: window.devicePixelRatio || 1,
-                autoDensity: true,
-            });
+            this.pixiApp.stage.sortableChildren = true;
 
-            if (this.$refs.pixiContainer && this.app.canvas) {
-                (this.$refs.pixiContainer as HTMLElement).appendChild(this.app.canvas);
-            }
-
-            // Критично для работы zIndex
-            this.app.stage.sortableChildren = true;
-
+            // Загрузка текстур
             const textures = await PIXI.Assets.load([
                 { alias: 'heart', src: imgHeart },
                 { alias: 'fist', src: imgFist },
                 { alias: 'crit', src: imgCrit }
             ]);
 
+            if (!this.values || this.values.length === 0) return;
+
+            // Создаем кубики
             this.values.forEach((val, index) => {
                 this.createDice(textures[val] || textures['heart'], index, val);
             });
 
+            // Запускаем сбор через паузу
             setTimeout(() => this.collectDices(), 2500);
         },
 
@@ -70,6 +74,7 @@ export default defineComponent({
             dice.diceType = type;
             dice.zIndex = 20;
 
+            // Сетка 3xN
             const columns = 3;
             const spacingX = dice.width * 1.1;
             const spacingY = dice.height * 0.9;
@@ -77,13 +82,14 @@ export default defineComponent({
             const groupW = (Math.min(total, columns) - 1) * spacingX;
             const groupH = (Math.ceil(total / columns) - 1) * spacingY;
 
-            const startX = (this.app.screen.width / 2) - (groupW / 2);
-            const startY = (this.app.screen.height / 2) - (groupH / 2);
+            // Используем актуальные размеры screen из Pixi (уже синхронизированы с окном)
+            const startX = (this.pixiApp.screen.width / 2) - (groupW / 2);
+            const startY = (this.pixiApp.screen.height / 2) - (groupH / 2);
 
             const finalX = startX + (index % columns * spacingX);
             const finalY = startY + (Math.floor(index / columns) * spacingY);
 
-            // Создание подложки
+            // Тень
             const shadow = new PIXI.Graphics();
             shadow
                 .ellipse(0, 0, dice.width * 0.6, dice.height * 0.35)
@@ -103,10 +109,11 @@ export default defineComponent({
             dice.y = -150;
             dice.rotation = Math.random() * 2;
 
-            this.app.stage.addChild(shadow);
-            this.app.stage.addChild(dice);
+            this.pixiApp.stage.addChild(shadow);
+            this.pixiApp.stage.addChild(dice);
             this.diceSprites.push(dice);
 
+            // Анимация появления
             gsap.to(dice, {
                 y: finalY,
                 rotation: (Math.random() * 0.4) - 0.2,
@@ -154,7 +161,7 @@ export default defineComponent({
                     sh.zIndex = 99;
                 });
 
-                this.app?.stage.sortChildren();
+                this.pixiApp.stage.sortChildren();
 
                 const tl = gsap.timeline({ delay: timelineDelay });
 
@@ -240,27 +247,17 @@ export default defineComponent({
             }, timelineDelay * 1000 + 1000);
         }
     },
-    beforeUnmount() {
-        // Убиваем все анимации на этих конкретных спрайтах
-        if (this.diceSprites.length > 0) {
-            this.diceSprites.forEach(s => {
-                gsap.killTweensOf(s);
-                if (s.shadow) gsap.killTweensOf(s.shadow);
-            });
-        }
 
+    beforeUnmount() {
+        // 1. Убиваем все анимации
+        this.diceSprites.forEach(s => {
+            gsap.killTweensOf(s);
+            if (s.shadow) gsap.killTweensOf(s.shadow);
+        });
         gsap.killTweensOf(".pixi-wrapper");
 
-        // Уничтожаем приложение Pixi
-        if (this.app) {
-            // Останавливаем тикер Pixi, чтобы он не пытался рендерить дестронутые объекты
-            this.app.ticker.stop();
-
-            this.app.destroy(true, {
-                children: true,
-                texture: true,
-            });
-        }
+        // 2. Очищаем сцену через менеджер
+        pixiManager.purge();
     }
 });
 </script>
