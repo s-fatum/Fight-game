@@ -5,6 +5,9 @@ class PixiManager {
     public app: Application | null = null;
     private initialized = false;
 
+    // Единая точка управления дебагом
+    private isDebug = import.meta.env.DEV;
+
     async init() {
         if (this.initialized && this.app) return this.app;
 
@@ -15,23 +18,27 @@ class PixiManager {
             autoDensity: true,
             backgroundAlpha: 0,
             antialias: true,
+            hello: this.isDebug,
         });
 
-        // Ключевой момент: защищаем объект от Vue Proxy
         this.app = markRaw(app);
         this.initialized = true;
+
+        // Подключение дебаг-панели
+        if (this.isDebug) {
+            (globalThis as any).__PIXI_APP__ = this.app;
+            console.log('🚀 PixiManager: Debug mode active');
+        }
 
         return this.app;
     }
 
-    // Метод для "вправления" размеров, если Pixi промахнулся при старте
     forceResize() {
         if (this.app) {
             this.app.renderer.resize(window.innerWidth, window.innerHeight);
         }
     }
 
-    // Очистка только контента, без уничтожения самого инстанса
     purge() {
         if (this.app) {
             this.app.stage.removeChildren();
