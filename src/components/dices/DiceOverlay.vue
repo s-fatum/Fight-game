@@ -156,8 +156,15 @@ export default defineComponent({
 
                 this.app?.stage.sortChildren();
 
-                // ОБЪЯВЛЯЕМ ТАЙМЛАЙН
                 const tl = gsap.timeline({ delay: timelineDelay });
+
+                tl.add(() => {
+                    const hexColor = `#${color.toString(16).padStart(6, '0')}`;
+                    console.log(
+                        `%c [${type.toUpperCase()}] начата анимация: ${sprites.length} шт. `,
+                        `background: ${hexColor}; color: white; padding: 2px 5px; border-radius: 4px; font-weight: bold;`
+                    );
+                }, 0); // Параметр 0 означает запуск в самом начале этого таймлайна
 
                 // 1. Анимация появления кубиков
                 rawSprites.forEach((s, index) => {
@@ -193,7 +200,6 @@ export default defineComponent({
                     }, 0);
                 });
 
-                // 3. Улет и схлопывание (фикс Missing Plugin и Unused property)
                 const allObjects = [...rawSprites, ...rawShadows];
 
                 // Анимируем позицию и прозрачность всех сразу
@@ -218,7 +224,7 @@ export default defineComponent({
                     }
                 });
 
-                // Очистка памяти через .add() чтобы IDE не ругалась на unused onComplete
+                // Очистка памяти
                 tl.add(() => {
                     rawSprites.forEach(s => {
                         if (s.shadow && !s.shadow.destroyed) s.shadow.destroy({ texture: false });
