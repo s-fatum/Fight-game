@@ -7,7 +7,6 @@
                 <BattlePage v-if="currentScreen === 'battle'" />
             </div>
         </main>
-        <Footer />
     </div>
 </template>
 
@@ -19,10 +18,9 @@ import { useUserStore } from '@/store/UserStore.ts';
 import MainPage from '@/views/MainPage.vue';
 import BattlePage from '@/views/BattlePage.vue';
 import Header from '@/components/ui/Header.vue';
-import Footer from '@/components/ui/Footer.vue';
 
 export default defineComponent({
-    components: { MainPage, BattlePage, Header, Footer },
+    components: { MainPage, BattlePage, Header },
     computed: {
         ...mapState(useBattleStore, ['currentScreen']),
     },
