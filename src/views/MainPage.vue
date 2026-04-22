@@ -10,14 +10,12 @@
 import { defineComponent, onMounted, onBeforeUnmount } from 'vue';
 import * as PIXI from 'pixi.js';
 import { pixiManager } from '@/core/pixiApp';
-import gsap from 'gsap';
 import FighterSelection from '@/components/battle/FighterSelection.vue';
 import { GlowFilter } from 'pixi-filters';
 
 export default defineComponent({
     name: 'MainPage',
     components: { FighterSelection },
-    // ... твой setup со step и остальным ...
 
     async mounted() {
         const app = await pixiManager.init();
@@ -43,7 +41,6 @@ export default defineComponent({
             const mainNeonColor = 0x1e88e5;
             const textColor = 0xea9937;
 
-            // 1. КОНТЕЙНЕР ТЕКСТА
             const textStyle = new PIXI.TextStyle({
                 fontFamily: 'Oswald, sans-serif',
                 fontSize: 60,
@@ -68,7 +65,11 @@ export default defineComponent({
             textContainer.addChild(textTop, textBottom);
 
             const textGlow = new GlowFilter({
-                distance: 10, outerStrength: 2, innerStrength: 1, color: textColor, quality: 0.5,
+                distance: 10,
+                outerStrength: 2,
+                innerStrength: 1,
+                color: textColor,
+                quality: 0.5,
             });
             textContainer.filters = [textGlow];
 
