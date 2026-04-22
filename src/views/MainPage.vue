@@ -35,14 +35,13 @@ export default defineComponent({
     emits: ['toggle-header'],
     data() {
         return {
-            step: 'intro', // Начинаем с интро
             logo: null as NeonLogo | null,
         };
     },
     components: { FighterSelection, EnemyRoulette, DiceOverlay },
     setup() {
         const store = useBattleStore();
-        const step = ref<'selection' | 'roulette' | 'dices'>('selection');
+        const step = ref<'intro' | 'selection' | 'roulette' | 'dices'>('intro');
         const targetEnemy = ref<any>(null);
         const diceValues = ref<string[]>([]);
 
@@ -93,13 +92,16 @@ export default defineComponent({
         });
 
         setTimeout(() => {
-            this.step = 'selection';
             if (this.logo) {
                 this.logo.flyToTop();
             }
 
             // Показываем хедер, когда логотип улетел на базу
             this.$emit('toggle-header', true);
+
+            setTimeout(() => {
+                this.step = 'selection';
+            }, 1500);
         }, 2500);
     },
 
