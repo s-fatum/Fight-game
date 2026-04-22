@@ -7,129 +7,41 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, onBeforeUnmount } from 'vue';
-import * as PIXI from 'pixi.js';
+import { defineComponent } from 'vue';
 import { pixiManager } from '@/core/pixiApp';
-import FighterSelection from '@/components/battle/FighterSelection.vue';
-import { GlowFilter } from 'pixi-filters';
+import { NeonLogo } from '@/core/NeonLogo';
 
 export default defineComponent({
-    name: 'MainPage',
-    components: { FighterSelection },
+    data() {
+        return {
+            step: 'intro', // Начинаем с интро
+            logo: null as NeonLogo | null,
+        };
+    },
 
     async mounted() {
         const app = await pixiManager.init();
         const container = this.$refs.pixiContainer as HTMLDivElement;
         if (container && app.canvas) {
-            // Вставляем канвас как самый нижний слой
-            app.canvas.style.position = 'absolute';
-            app.canvas.style.top = '0';
-            app.canvas.style.left = '0';
-            app.canvas.style.zIndex = '0';
             container.prepend(app.canvas);
         }
 
-        pixiManager.forceResize();
-        this.createNeonLogo(app);
-    },
+        this.logo = new NeonLogo(app);
 
-    methods: {
-        createNeonLogo(app: PIXI.Application) {
-            const logoContainer = new PIXI.Container();
+        app.ticker.add(() => {
+            if (this.logo) {
+                this.logo.update();
 
-            // Твои переменные цветов
-            const mainNeonColor = 0x1e88e5;
-            const textColor = 0xea9937;
-
-            const textStyle = new PIXI.TextStyle({
-                fontFamily: 'Oswald, sans-serif',
-                fontSize: 60,
-                fill: 'transparent',
-                stroke: {
-                    color: '#ffffff',
-                    width: 1,
-                    alpha: 1
-                },
-                fontWeight: 'bold',
-                letterSpacing: 1,
-            });
-
-            const textContainer = new PIXI.Container();
-            const textTop = new PIXI.Text({ text: 'БИТВА', style: textStyle });
-            const textBottom = new PIXI.Text({ text: 'ПОЛИГРАФИИ', style: textStyle });
-
-            textTop.anchor.set(0.5);
-            textTop.y = -35;
-            textBottom.anchor.set(0.5);
-            textBottom.y = 35;
-            textContainer.addChild(textTop, textBottom);
-
-            const textGlow = new GlowFilter({
-                distance: 10,
-                outerStrength: 2,
-                innerStrength: 1,
-                color: textColor,
-                quality: 0.5,
-            });
-            textContainer.filters = [textGlow];
-
-            // ГРАФИКА РАМКИ
-            const borderGraphics = new PIXI.Graphics();
-            const innerPadding = 25;
-            const curveRadius = 20;
-
-            // Рассчитываем габариты на основе контента
-            const totalWidth = textContainer.width + innerPadding * 2;
-            const totalHeight = textContainer.height + innerPadding * 2;
-
-            // Рисуем рамку симметрично относительно (0,0)
-            const halfW = totalWidth / 2;
-            const halfH = totalHeight / 2;
-
-            borderGraphics.context
-                .roundRect(-halfW, -halfH, totalWidth, totalHeight, curveRadius);
-            borderGraphics.stroke({ width: 3, color: 0xffffff });
-
-            // Твои 3 слоя GlowFilter для рамки
-            const borderGlowInner = new GlowFilter({
-                distance: 10, outerStrength: 2, innerStrength: 3, color: 0xffffff, quality: 0.5, alpha: 0.5,
-            });
-            const borderGlowMain = new GlowFilter({
-                distance: 30, outerStrength: 5, innerStrength: 0, color: mainNeonColor, quality: 0.5
-            });
-            const borderGlowFar = new GlowFilter({
-                distance: 60, outerStrength: 1.5, innerStrength: 0, color: mainNeonColor, quality: 0.3
-            });
-
-            borderGraphics.filters = [borderGlowInner, borderGlowMain, borderGlowFar];
-
-            logoContainer.addChild(borderGraphics, textContainer);
-
-            // Позиционируем готовую вывеску на экране
-            logoContainer.x = app.screen.width / 2;
-            logoContainer.y = 200;
-
-            app.stage.addChild(logoContainer);
-
-            // Анимация мерцания
-            app.ticker.add(() => {
-                const basePulse = Math.sin(Date.now() * 0.003);
-                borderGlowFar.outerStrength = 1.5 + basePulse * 0.1;
-
-                if (Math.random() > 0.99) {
-                    const drop = Math.random();
-
-                    borderGraphics.alpha = 1 - (drop * 0.1);
-                    textGlow.outerStrength = (1 - drop);
-                    textContainer.alpha = 1 - (drop * 0.15);
-                } else {
-                    borderGraphics.alpha += (1 - borderGraphics.alpha) * 0.2;
-                    textContainer.alpha += (1 - textContainer.alpha) * 0.2;
-                    const targetGlow = 2.5;
-                    textGlow.outerStrength += (targetGlow - textGlow.outerStrength) * 0.1;
+                if (this.step !== 'intro') {
+                    this.logo.moveTo(180); // Позиция наверху
                 }
-            });
-        }
+            }
+        });
+
+        // 2 секунды любуемся, потом показываем меню
+        setTimeout(() => {
+            this.step = 'selection';
+        }, 2500);
     },
 
     beforeUnmount() {
