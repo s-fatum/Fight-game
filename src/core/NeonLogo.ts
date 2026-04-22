@@ -85,9 +85,6 @@ export class NeonLogo {
         gsap.to(this.container, { alpha: 1, duration: 0.8 });
     }
 
-    /**
-     * Метод для вызова в ticker.add
-     */
     public update() {
         const basePulse = Math.sin(Date.now() * 0.003);
         this.borderGlowFar.outerStrength = 1.5 + basePulse * 0.1;
