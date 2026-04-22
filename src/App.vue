@@ -1,9 +1,14 @@
 <template>
     <div class="app">
-        <Header />
+        <transition name="fade">
+            <Header v-if="isHeaderVisible" />
+        </transition>
         <main class="main">
             <div class="container">
-                <MainPage v-if="currentScreen === 'main'" />
+                <MainPage
+                    v-if="currentScreen === 'main'"
+                    @toggle-header="setHeaderVisibility"
+                />
                 <BattlePage v-if="currentScreen === 'battle'" />
             </div>
         </main>
@@ -11,7 +16,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, ref } from 'vue';
 import { mapActions, mapState } from 'pinia';
 import { useBattleStore } from '@/store/BattleStore.ts';
 import { useUserStore } from '@/store/UserStore.ts';
@@ -20,16 +25,21 @@ import BattlePage from '@/views/BattlePage.vue';
 import Header from '@/components/ui/Header.vue';
 
 export default defineComponent({
+    setup() {
+        const isHeaderVisible = ref(false);
+
+        const setHeaderVisibility = (visible: boolean) => {
+            isHeaderVisible.value = visible;
+        };
+
+        return { isHeaderVisible, setHeaderVisibility };
+    },
     components: { MainPage, BattlePage, Header },
     computed: {
         ...mapState(useBattleStore, ['currentScreen']),
     },
     methods: {
         ...mapActions(useUserStore, ['loadUserData']),
-    },
-
-    mounted() {
-        this.loadUserData();
     },
 });
 </script>
@@ -64,5 +74,25 @@ canvas {
     top: 0 !important;
     left: 0 !important;
     display: block !important;
+}
+
+/* не покупайся на Unused) */
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.5s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.5s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
 }
 </style>

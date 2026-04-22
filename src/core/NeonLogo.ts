@@ -108,7 +108,8 @@ export class NeonLogo {
             y: 160,
             scale: 0.6,
             duration: 1.2,
-            ease: "expo.out"
+            ease: "expo.out",
+            force3D: true
         });
     }
 }

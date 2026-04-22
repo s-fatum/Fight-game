@@ -12,6 +12,8 @@ import { pixiManager } from '@/core/pixiApp';
 import { NeonLogo } from '@/core/NeonLogo';
 
 export default defineComponent({
+    name: 'MainPage',
+    emits: ['toggle-header'],
     data() {
         return {
             step: 'intro', // Начинаем с интро
@@ -20,6 +22,8 @@ export default defineComponent({
     },
 
     async mounted() {
+        this.$emit('toggle-header', false);
+
         const app = await pixiManager.init();
         const container = this.$refs.pixiContainer as HTMLDivElement;
         if (container && app.canvas) {
@@ -37,6 +41,9 @@ export default defineComponent({
             if (this.logo) {
                 this.logo.flyToTop();
             }
+
+            // Показываем хедер, когда логотип улетел на базу
+            this.$emit('toggle-header', true);
         }, 2500);
     },
 
