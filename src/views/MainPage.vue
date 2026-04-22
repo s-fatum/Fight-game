@@ -29,18 +29,14 @@ export default defineComponent({
         this.logo = new NeonLogo(app);
 
         app.ticker.add(() => {
-            if (this.logo) {
-                this.logo.update();
-
-                if (this.step !== 'intro') {
-                    this.logo.moveTo(180); // Позиция наверху
-                }
-            }
+            if (this.logo) this.logo.update();
         });
 
-        // 2 секунды любуемся, потом показываем меню
         setTimeout(() => {
             this.step = 'selection';
+            if (this.logo) {
+                this.logo.flyToTop();
+            }
         }, 2500);
     },
 

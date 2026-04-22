@@ -13,6 +13,7 @@ class PixiManager {
 
         const app = new Application();
         await app.init({
+            //preference: 'canvas', - если красота не нужна
             resizeTo: window,
             resolution: window.devicePixelRatio || 1,
             autoDensity: true,
@@ -20,6 +21,9 @@ class PixiManager {
             antialias: true,
             hello: this.isDebug,
         });
+
+        app.ticker.minFPS = 30;
+        app.ticker.maxFPS = 60;
 
         app.canvas.style.width = '100vw';
         app.canvas.style.height = '100vh';

@@ -1,5 +1,6 @@
 import * as PIXI from 'pixi.js';
 import { GlowFilter } from 'pixi-filters';
+import { gsap } from 'gsap';
 
 export class NeonLogo {
     public container: PIXI.Container;
@@ -27,11 +28,11 @@ export class NeonLogo {
 
         const textStyle = new PIXI.TextStyle({
             fontFamily: 'Oswald, sans-serif',
-            fontSize: 60,
+            fontSize: 80,
             fill: 'transparent',
             stroke: { color: '#ffffff', width: 1, alpha: 1 },
             fontWeight: 'bold',
-            letterSpacing: 4, // Увеличил для читаемости при свечении
+            letterSpacing: 1,
         });
 
         this.textContainer = new PIXI.Container();
@@ -79,34 +80,35 @@ export class NeonLogo {
         this.borderGraphics.filters = [borderGlowInner, borderGlowMain, this.borderGlowFar];
 
         this.container.addChild(this.borderGraphics, this.textContainer);
+
+        // Мягкое появление из темноты
+        gsap.to(this.container, { alpha: 1, duration: 0.8 });
     }
 
     /**
      * Метод для вызова в ticker.add
      */
     public update() {
-        // 1. Мягкая пульсация рамки
         const basePulse = Math.sin(Date.now() * 0.003);
         this.borderGlowFar.outerStrength = 1.5 + basePulse * 0.1;
 
-        // 2. Хаотичное мерцание
         if (Math.random() > 0.99) {
             const drop = Math.random();
             this.borderGraphics.alpha = 1 - (drop * 0.1);
             this.textGlow.outerStrength = (1 - drop);
-            this.textContainer.alpha = 1 - (drop * 0.15);
         } else {
-            // Возврат к нормальному состоянию
             this.borderGraphics.alpha += (1 - this.borderGraphics.alpha) * 0.2;
-            this.textContainer.alpha += (1 - this.textContainer.alpha) * 0.2;
-            this.textGlow.outerStrength += (2.5 - this.textGlow.outerStrength) * 0.1;
+            const targetGlow = 2.5;
+            this.textGlow.outerStrength += (targetGlow - this.textGlow.outerStrength) * 0.1;
         }
     }
 
-    /**
-     * Перемещение логотипа
-     */
-    public moveTo(y: number, speed: number = 0.05) {
-        this.container.y += (y - this.container.y) * speed;
+    public flyToTop() {
+        gsap.to(this.container, {
+            y: 160,
+            scale: 0.6,
+            duration: 1.2,
+            ease: "expo.out"
+        });
     }
 }
