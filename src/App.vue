@@ -34,31 +34,35 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss">
+<style>
+:root {
+    overflow: hidden;
+}
+
 html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    overflow: hidden; /* Глобально убираем скролл, чтобы приложение не "гуляло" */
-    background: #0a0f14; /* Цвет-заглушка в тон фона */
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    overflow: hidden !important;
+    position: fixed;
 }
 
-.app {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    width: 100vw;
-    position: relative;
+.app, main, .main, .container, .page-background {
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    display: block !important;
 }
 
-.main {
-    flex: 1;
-    position: relative;
-    overflow: hidden; /* Контент страницы сам будет управлять своим скроллом, если надо */
-}
-
-.container {
-    height: 100%;
-    width: 100%;
+canvas {
+    width: 100vw !important;
+    height: 100vh !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    display: block !important;
 }
 </style>
