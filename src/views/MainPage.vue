@@ -103,7 +103,6 @@ export default defineComponent({
 
             borderGraphics.filters = [borderGlowInner, borderGlowMain, borderGlowFar];
 
-            // СБОРКА
             logoContainer.addChild(borderGraphics, textContainer);
 
             // Позиционируем готовую вывеску на экране
@@ -114,8 +113,21 @@ export default defineComponent({
 
             // Анимация мерцания
             app.ticker.add(() => {
-                borderGlowFar.outerStrength = 1.5 + Math.sin(Date.now() * 0.01) * 0.2;
-                textGlow.outerStrength = 3 + Math.sin(Date.now() * 0.005) * 0.1;
+                const basePulse = Math.sin(Date.now() * 0.003);
+                borderGlowFar.outerStrength = 1.5 + basePulse * 0.1;
+
+                if (Math.random() > 0.99) {
+                    const drop = Math.random();
+
+                    borderGraphics.alpha = 1 - (drop * 0.1);
+                    textGlow.outerStrength = (1 - drop);
+                    textContainer.alpha = 1 - (drop * 0.15);
+                } else {
+                    borderGraphics.alpha += (1 - borderGraphics.alpha) * 0.2;
+                    textContainer.alpha += (1 - textContainer.alpha) * 0.2;
+                    const targetGlow = 2.5;
+                    textGlow.outerStrength += (targetGlow - textGlow.outerStrength) * 0.1;
+                }
             });
         }
     },
