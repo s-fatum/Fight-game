@@ -68,7 +68,7 @@ export default defineComponent({
     width: 100vw;
     background-image:
         linear-gradient(rgba(10, 20, 30, 0.4), rgba(10, 20, 30, 0.8)),
-        url('@/assets/main_bg.png'); // Твоя версия без текста
+        url('@/assets/main_bg.png');
     background-size: cover;
     background-position: top center;
     background-repeat: no-repeat;
