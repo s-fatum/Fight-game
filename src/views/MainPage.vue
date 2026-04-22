@@ -23,6 +23,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, onMounted } from 'vue';
+import { delay } from '@/utils/time'; // Импортируем наш хелпер
 import { useBattleStore } from '@/store/BattleStore';
 import { pixiManager } from '@/core/pixiApp';
 import { NeonLogo } from '@/core/NeonLogo';
@@ -40,8 +41,10 @@ export default defineComponent({
     },
     components: { FighterSelection, EnemyRoulette, DiceOverlay },
     setup() {
-        const store = useBattleStore();
         const step = ref<'intro' | 'selection' | 'roulette' | 'dices'>('intro');
+        const pixiTicker = ref<(() => void) | null>(null);
+
+        const store = useBattleStore();
         const targetEnemy = ref<any>(null);
         const diceValues = ref<string[]>([]);
 
@@ -74,7 +77,7 @@ export default defineComponent({
             await store.startMainFight();
         };
 
-        return { step, handleStart, onRouletteFinished, onDicesFinished, targetEnemy, diceValues };
+        return { step, pixiTicker, handleStart, onRouletteFinished, onDicesFinished, targetEnemy, diceValues };
     },
     async mounted() {
         this.$emit('toggle-header', false);
@@ -87,25 +90,28 @@ export default defineComponent({
 
         this.logo = new NeonLogo(app);
 
-        app.ticker.add(() => {
+        // Сохраняем тикер в реф из setup
+        this.pixiTicker = () => {
             if (this.logo) this.logo.update();
-        });
+        };
+        app.ticker.add(this.pixiTicker);
 
-        setTimeout(() => {
-            if (this.logo) {
-                this.logo.flyToTop();
-            }
 
-            // Показываем хедер, когда логотип улетел на базу
-            this.$emit('toggle-header', true);
+        await delay(2500); // Пауза на интро
 
-            setTimeout(() => {
-                this.step = 'selection';
-            }, 1500);
-        }, 2500);
+        if (this.logo) this.logo.flyToTop();
+        this.$emit('toggle-header', true);
+
+        await delay(1200); // Ждем пока лого долетит
+
+        this.step = 'selection'; // Показываем игроков
     },
 
     beforeUnmount() {
+        const app = pixiManager.app;
+        if (app && this.pixiTicker) {
+            app.ticker.remove(this.pixiTicker);
+        }
         pixiManager.purge();
     }
 });
