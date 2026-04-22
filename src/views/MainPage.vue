@@ -108,7 +108,7 @@ export default defineComponent({
 
             // Позиционируем готовую вывеску на экране
             logoContainer.x = app.screen.width / 2;
-            logoContainer.y = 360;
+            logoContainer.y = 200;
 
             app.stage.addChild(logoContainer);
 
