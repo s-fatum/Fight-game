@@ -23,7 +23,6 @@ import { useUserStore } from '@/store/UserStore';
 export default defineComponent({
     name: 'Header',
     computed: {
-        // Подключаем данные из стора напрямую
         ...mapState(useUserStore, ['account', 'balance']),
     }
 });
@@ -52,7 +51,7 @@ export default defineComponent({
 
 .user-name {
     font-weight: 700;
-    color: #00ffff; // Циановый неон
+    color: #00ffff;
     text-shadow: 0 0 8px rgba(0, 255, 255, 0.6);
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -62,7 +61,7 @@ export default defineComponent({
 .balance-badge {
     background: rgba(0, 0, 0, 0.6);
     padding: 6px 20px;
-    border-radius: 4px; // Делаем более "рубленым" под интерфейсы станков
+    border-radius: 4px;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -79,7 +78,7 @@ export default defineComponent({
         color: #fff;
         font-weight: 800;
         font-size: 1.3rem;
-        font-family: 'Courier New', Courier, monospace; // Машинный стиль
+        font-family: 'Courier New', Courier, monospace;
         text-shadow: 0 0 5px #fff;
     }
 
