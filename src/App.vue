@@ -44,7 +44,7 @@ export default defineComponent({
 });
 </script>
 
-<style>
+<style lang="scss">
 :root {
     overflow: hidden;
 }
@@ -64,15 +64,6 @@ html, body {
     margin: 0 !important;
     padding: 0 !important;
     overflow: hidden !important;
-    display: block !important;
-}
-
-canvas {
-    width: 100vw !important;
-    height: 100vh !important;
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
     display: block !important;
 }
 

@@ -1,6 +1,6 @@
 <template>
     <div class="page-background main-bg" ref="pixiContainer">
-        <div class="main-page">
+        <div class="ui-layer">
             <FighterSelection
                 v-if="step === 'selection'"
                 @start="handleStart"
@@ -120,16 +120,11 @@ export default defineComponent({
 <style scoped lang="scss">
 @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap');
 
-.content-wrapper {
-    position: relative;
-    z-index: 10; // Поверх Pixi
-    height: 100%;
-    overflow-y: auto;
-    padding-top: 200px; // Даем место под вывеску
-}
 .page-background {
-    height: 100vh;
+    position: relative;
     width: 100vw;
+    height: 100vh;
+    overflow: hidden;
     background-image:
         linear-gradient(rgba(10, 20, 30, 0.4), rgba(10, 20, 30, 0.8)),
         url('@/assets/main_bg.png');
@@ -139,5 +134,27 @@ export default defineComponent({
     padding-top: 80px;
     box-sizing: border-box;
     overflow-y: auto;
+}
+
+.ui-layer {
+    position: relative;
+    z-index: 10;
+    height: 100%;
+    overflow-y: auto;
+    padding-top: 140px;
+}
+
+.main-page {
+    position: relative;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+:deep(canvas) {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    z-index: 0;
+    pointer-events: none;
 }
 </style>
