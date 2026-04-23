@@ -88,6 +88,7 @@ export default defineComponent({
             container.prepend(app.canvas);
         }
 
+        await document.fonts.ready; // Ждем, пока браузер подтянет все @font-face
         this.logo = new NeonLogo(app);
 
         // Сохраняем тикер в реф из setup
@@ -95,7 +96,6 @@ export default defineComponent({
             if (this.logo) this.logo.update();
         };
         app.ticker.add(this.pixiTicker);
-
 
         await delay(2500); // Пауза на интро
 
