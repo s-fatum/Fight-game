@@ -41,6 +41,9 @@ export default defineComponent({
     methods: {
         ...mapActions(useUserStore, ['loadUserData']),
     },
+    mounted(): any {
+        this.loadUserData();
+    },
 });
 </script>
 
@@ -49,7 +52,8 @@ export default defineComponent({
     overflow: hidden;
 }
 
-html, body {
+html,
+body {
     margin: 0 !important;
     padding: 0 !important;
     width: 100vw !important;
@@ -58,7 +62,11 @@ html, body {
     position: fixed;
 }
 
-.app, main, .main, .container, .page-background {
+.app,
+main,
+.main,
+.container,
+.page-background {
     width: 100% !important;
     height: 100% !important;
     margin: 0 !important;
