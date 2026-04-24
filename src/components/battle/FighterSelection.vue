@@ -21,9 +21,10 @@
 
         <div class="footer-actions">
             <button
-                class="btn-start-neon"
+                class="start-battle-btn"
+                :class="{ 'is-ready': store.selectedFighterId && store.betAmount > 0 }"
+                :disabled="!store.selectedFighterId || store.betAmount <= 0"
                 @click="$emit('start')"
-                :disabled="!store.selectedFighterId"
             >
                 В БОЙ!
             </button>
@@ -95,24 +96,59 @@ export default defineComponent({
     gap: 25px;
 }
 
-.btn-start-neon {
-    margin-top: 40px;
-    padding: 15px 100px;
-    background: #1e88e5; /* Синий как на макете */
-    border: none;
-    border-radius: 8px;
-    color: #fff;
+.start-battle-btn {
+    /* Базовое состояние (Заблокирована) */
+    width: 300px;
+    height: 60px;
+    margin-top: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
     font-family: 'Oswald', sans-serif;
-    font-size: 32px;
+    font-size: 24px;
+    font-weight: bold;
     text-transform: uppercase;
-    cursor: pointer;
-    box-shadow: 0 0 20px rgba(30, 136, 229, 0.5);
-    transition: all 0.3s ease;
+    letter-spacing: 2px;
+    cursor: not-allowed;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
-    &:hover:not(:disabled) {
-        box-shadow: 0 0 40px rgba(30, 136, 229, 0.8);
-        transform: scale(1.05);
+    /* Активное (Золотое) состояние */
+    &.is-ready {
+        cursor: pointer;
+        color: #fff;
+        background: linear-gradient(180deg, #ffb700 0%, #ff9900 100%);
+        border-color: #ffb700;
+
+        /* Твои настроенные тени */
+        box-shadow:
+            0 0 10px rgba(255, 183, 0, 0.4),
+            0 0 20px 2px rgba(255, 174, 0, 0.5),
+            0 0 1px 1px #ff9900,
+            inset 0 0 15px rgba(255, 255, 255, 0.3);
+
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        animation: golden-pulse 2s infinite;
+
+        &:hover {
+            transform: scale(1.05);
+            filter: brightness(1.1);
+            box-shadow:
+                0 0 15px rgba(255, 183, 0, 0.6),
+                0 0 30px 4px rgba(255, 174, 0, 0.7),
+                0 0 2px 2px #ff9900;
+        }
+
+        &:active {
+            transform: scale(0.98);
+        }
     }
+}
+
+@keyframes golden-pulse {
+    0% { box-shadow: 0 0 10px rgba(255, 183, 0, 0.4), 0 0 20px 2px rgba(255, 174, 0, 0.5); }
+    50% { box-shadow: 0 0 20px rgba(255, 183, 0, 0.6), 0 0 40px 4px rgba(255, 174, 0, 0.8); }
+    100% { box-shadow: 0 0 10px rgba(255, 183, 0, 0.4), 0 0 20px 2px rgba(255, 174, 0, 0.5); }
 }
 
 .controls-side {
