@@ -143,7 +143,6 @@ export default defineComponent({
     z-index: 10;
     height: 100%;
     overflow-y: auto;
-    padding-top: 140px;
 }
 
 .main-page {
