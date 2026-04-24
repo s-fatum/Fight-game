@@ -28,7 +28,7 @@ import { useBattleStore } from '@/store/BattleStore';
 import { pixiManager } from '@/core/pixiApp';
 import { NeonLogo } from '@/core/NeonLogo';
 import FighterSelection from '@/components/battle/FighterSelection.vue';
-import EnemyRoulette from '@/components/battle/EnemyRoulette.vue';
+import EnemySelection from '@/components/battle/EnemySelection.vue';
 import DiceOverlay from '@/components/dices/DiceOverlay.vue';
 
 export default defineComponent({
@@ -39,7 +39,7 @@ export default defineComponent({
             logo: null as NeonLogo | null,
         };
     },
-    components: { FighterSelection, EnemyRoulette, DiceOverlay },
+    components: { FighterSelection, EnemyRoulette: EnemySelection, DiceOverlay },
     setup() {
         const step = ref<'intro' | 'selection' | 'roulette' | 'dices'>('intro');
         const pixiTicker = ref<(() => void) | null>(null);
