@@ -120,7 +120,7 @@ export default defineComponent({
 </script>
 
 <style scoped lang="scss">
-@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap');
+@import url('@/assets/styles/fonts.scss');
 
 .page-background {
     position: relative;
