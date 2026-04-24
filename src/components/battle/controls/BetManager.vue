@@ -5,7 +5,7 @@
         <div class="bet-display">
             <input
                 type="number"
-                :value="store.betAmount ?? 20"
+                :value="store.betAmount"
                 readonly
                 class="bet-input-field"
             />
