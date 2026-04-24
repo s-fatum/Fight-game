@@ -1,7 +1,7 @@
 <template>
     <div class="dice-buyer">
         <div class="dice-info">
-            <span class="label">Dice Buy</span>
+            <span class="label">Усиления</span>
             <div class="count-wrapper">
                 <span class="count">{{ store.purchasedDiceCount }}</span>
                 <span class="unit">шт.</span>

@@ -97,10 +97,9 @@ export default defineComponent({
 }
 
 .start-battle-btn {
-    /* Базовое состояние (Заблокирована) */
     width: 300px;
     height: 60px;
-    margin-top: 20px;
+    margin-top: 40px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     background: rgba(255, 255, 255, 0.05);
     color: rgba(255, 255, 255, 0.2);
@@ -113,14 +112,11 @@ export default defineComponent({
     cursor: not-allowed;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
-    /* Активное (Золотое) состояние */
     &.is-ready {
         cursor: pointer;
         color: #fff;
         background: linear-gradient(180deg, #ffb700 0%, #ff9900 100%);
         border-color: #ffb700;
-
-        /* Твои настроенные тени */
         box-shadow:
             0 0 10px rgba(255, 183, 0, 0.4),
             0 0 20px 2px rgba(255, 174, 0, 0.5),
@@ -156,10 +152,9 @@ export default defineComponent({
     padding-left: 30px;
     display: flex;
     flex-direction: column;
-    gap: 40px; /* Большой отступ между кубиками и ставками */
+    gap: 40px;
 }
 
-/* Можно добавить микро-заголовок секции */
 .section-title {
     font-family: 'Oswald', sans-serif;
     font-size: 12px;
