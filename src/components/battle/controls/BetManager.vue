@@ -47,67 +47,32 @@ export default defineComponent({
 </script>
 
 <style scoped lang="scss">
-.bet-display {
-    display: flex;
-    align-items: center;
-    background: #000;
-    border-radius: 8px;
-    padding: 10px 15px;
-    margin-bottom: 20px;
-    border: 1px solid #333;
-
-    .bet-input-field {
-        background: transparent;
-        border: none;
-        color: #ffd700;
-        font-family: 'Oswald', sans-serif;
-        font-size: 24px;
-        width: 100%;
-        text-align: center;
-        outline: none;
-    }
-    .currency-label {
-        font-size: 20px;
-    }
-}
-
 .bet-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-bottom: 15px;
-
-    button {
-        padding: 10px 5px;
-        background: #333;
-        border: 1px solid #444;
-        color: #fff;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 13px;
-        transition: background 0.2s;
-        &:hover {
-            background: #444;
-            border-color: #555;
-        }
-        &:active {
-            transform: scale(0.95);
-        }
-    }
+    gap: 8px;
 }
 
-.reset-bet-btn {
-    width: 100%;
+.bet-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
     padding: 10px;
-    background: transparent;
-    border: 1px solid #c0392b;
-    color: #c0392b;
-    border-radius: 6px;
+    border-radius: 4px;
+    font-size: 14px;
     cursor: pointer;
-    font-weight: bold;
-    &:hover {
-        background: #c0392b;
-        color: #fff;
+    &:hover { background: rgba(255, 255, 255, 0.15); }
+}
+
+.bet-display {
+    background: #fff; /* Белый инпут как на макете */
+    border-radius: 4px;
+    margin-bottom: 15px;
+    input {
+        color: #000;
+        font-size: 24px;
+        font-weight: bold;
+        text-align: center;
     }
 }
 </style>

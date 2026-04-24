@@ -46,79 +46,72 @@ export default defineComponent({
 
 <style scoped lang="scss">
 .fighter-card {
-    /* Ширина чуть больше картинки (картинка ~180px + отступы) */
-    flex: 0 0 220px;
-    background: rgba(20, 20, 20, 0.85);
-    border-radius: 12px;
-    padding: 15px;
+    flex: 1;
+    padding: 20px;
     cursor: pointer;
-    border: 2px solid rgba(255, 255, 255, 0.05);
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    backdrop-filter: blur(8px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    background: rgba(0, 178, 255, 0.05);
+    backdrop-filter: blur(5px) saturate(150%);
+    -webkit-backdrop-filter: blur(2px);
+    border-radius: 12px;
+    border: 2px solid rgba(76, 201, 255, 0.75);
+    position: relative;
+    overflow: hidden;
+    box-shadow:
+        0 0 10px rgba(49, 180, 255, 0.4),
+        0 0 10px 2px rgba(106, 195, 251, 0.61),
+        0 0 1px 1px #a1dcff;
 
     &.selected {
-        border-color: #ea9937;
-        box-shadow: 0 0 20px rgba(234, 153, 55, 0.3);
-        background: rgba(35, 35, 35, 0.95);
-        transform: translateY(-8px);
+        border-color: #ffb700;
+        box-shadow:
+            0 0 10px rgba(255, 183, 0, 0.4),
+            0 0 20px 2px rgba(255, 174, 0, 0.5),
+            0 0 1px 1px #ff9900;
+        transform: translateY(-5px);
     }
 
     &__avatar-wrapper {
-        height: 160px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        height: 180px;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 12px;
-        img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        margin-bottom: 15px;
+        img { max-height: 90%; }
     }
 
     &__name {
-        text-align: center;
-        font-family: 'Oswald', sans-serif;
+        text-align: left; /* Как на макете */
         font-size: 18px;
         color: #fff;
-        margin-bottom: 12px;
-        letter-spacing: 0.5px;
+        margin-bottom: 20px;
     }
 }
 
 .stat-row {
-    margin-bottom: 10px;
-    &:last-child { margin-bottom: 0; }
-}
-
-.stat-info {
-    display: flex;
-    justify-content: space-between;
-    font-size: 10px;
-    margin-bottom: 3px;
-    font-weight: 700;
-    color: rgba(255,255,255,0.6);
+    margin-bottom: 8px;
+    .stat-info {
+        display: flex;
+        justify-content: space-between;
+        font-size: 10px;
+        color: rgba(255,255,255,0.5);
+        margin-bottom: 2px;
+    }
 }
 
 .stat-bar-bg {
     height: 4px;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.3);
     border-radius: 2px;
-    overflow: hidden;
 }
 
 .stat-bar-fill {
     height: 100%;
-    transition: width 0.5s ease-out;
-
-    /* Сочные цвета для статов */
-    &.hp {
-        background: #ff3e3e;
-        box-shadow: 0 0 8px rgba(255, 62, 62, 0.5);
-    }
-    &.atk {
-        background: #ff9f43;
-        box-shadow: 0 0 8px rgba(255, 159, 67, 0.5);
-    }
-    &.crit {
-        background: #00d2d3;
-        box-shadow: 0 0 8px rgba(0, 210, 211, 0.5);
-    }
+    &.hp { background: #4caf50; box-shadow: 0 0 10px #4caf50; }
+    &.atk { background: #ff9800; box-shadow: 0 0 10px #ff9800; }
+    &.crit { background: #03a9f4; box-shadow: 0 0 10px #03a9f4; }
 }
 </style>

@@ -1,24 +1,30 @@
 <template>
-    <div class="prep-screen">
-        <div class="main-layout">
-            <div class="selection-side">
-                <FighterCard
-                    v-for="fighter in store.availableFighters.slice(0, 3)"
-                    :key="fighter.id"
-                    :fighter="fighter"
-                    :isSelected="store.selectedFighterId === fighter.id"
-                    @select="store.setSelectedFighter"
-                />
-            </div>
+    <div class="selection-screen">
+        <div class="glass-container">
+            <div class="main-layout">
+                <div class="selection-side">
+                    <FighterCard
+                        v-for="fighter in store.availableFighters.slice(0, 3)"
+                        :key="fighter.id"
+                        :fighter="fighter"
+                        :isSelected="store.selectedFighterId === fighter.id"
+                        @select="store.setSelectedFighter"
+                    />
+                </div>
 
-            <aside class="controls-side">
-                <DiceBuyer />
-                <BetManager />
-            </aside>
+                <aside class="controls-side">
+                    <DiceBuyer />
+                    <BetManager />
+                </aside>
+            </div>
         </div>
 
         <div class="footer-actions">
-            <button class="start-btn" @click="$emit('start')" :disabled="!store.selectedFighterId">
+            <button
+                class="btn-start-neon"
+                @click="$emit('start')"
+                :disabled="!store.selectedFighterId"
+            >
                 В БОЙ!
             </button>
         </div>
@@ -42,70 +48,70 @@ export default defineComponent({
 </script>
 
 <style scoped lang="scss">
-.prep-screen {
-    width: 80%;
-    margin: 270px auto 0;
+.selection-screen {
+    margin-top: 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
 }
+
+.glass-container {
+    padding: 40px;
+    width: 95%;
+    max-width: 1240px;
+
+    background: rgba(0, 178, 255, 0.02);
+    backdrop-filter: blur(2px) saturate(150%);
+    -webkit-backdrop-filter: blur(2px);
+    border-radius: 12px;
+    border: 2px solid rgba(76, 201, 255, 0.75);
+    position: relative;
+    overflow: hidden;;
+    box-shadow:
+        0 0 10px rgba(49, 180, 255, 0.4),
+        0 0 20px 2px rgba(106, 195, 251, 0.61),
+        0 0 1px 1px #a1dcff;
+}
+
 .main-layout {
     display: grid;
-    grid-template-columns: 1fr 320px;
+    grid-template-columns: 1fr 380px;
     gap: 30px;
-    align-items: start;
-    width: 100%;
-    background: #333333;
-    padding: 45px;
-    border-radius: 20px;
-
-    border-color: #ea9937;
-    box-shadow: 0 0 20px rgba(234, 153, 55, 0.3);
 }
 
 .selection-side {
     display: flex;
-    flex-flow: row nowrap;
+    flex-direction: row;
     justify-content: space-between;
-    align-items: stretch;
-    gap: 15px;
-    flex: 1;
-}
-
-.controls-side {
-    border-left: 2px solid #1e88e5;
-    padding-left: 25px;
-    display: flex;
-    flex-direction: column;
     gap: 20px;
 }
 
-/* Футер с кнопкой в бой */
-.footer-actions {
-    margin-top: 40px;
+.controls-side {
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    padding-left: 30px;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    gap: 25px;
 }
 
-.start-battle-btn {
-    width: 60%;
-    padding: 22px;
-    background: linear-gradient(to bottom, #27ae60, #2ecc71);
+.btn-start-neon {
+    margin-top: 40px;
+    padding: 15px 100px;
+    background: #1e88e5; /* Синий как на макете */
     border: none;
-    color: white;
+    border-radius: 8px;
+    color: #fff;
     font-family: 'Oswald', sans-serif;
-    font-size: 28px;
+    font-size: 32px;
     text-transform: uppercase;
-    letter-spacing: 2px;
-    border-radius: 12px;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
-    transition: all 0.3s;
+    box-shadow: 0 0 20px rgba(30, 136, 229, 0.5);
+    transition: all 0.3s ease;
 
     &:hover:not(:disabled) {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 20px rgba(39, 174, 96, 0.6);
-        filter: brightness(1.1);
+        box-shadow: 0 0 40px rgba(30, 136, 229, 0.8);
+        transform: scale(1.05);
     }
-
-    &:active { transform: translateY(0); }
-    &:disabled { background: #34495e; box-shadow: none; opacity: 0.6; cursor: not-allowed; }
 }
 </style>
