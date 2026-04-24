@@ -88,7 +88,9 @@ export default defineComponent({
             container.prepend(app.canvas);
         }
 
-        await document.fonts.ready; // Ждем, пока браузер подтянет все @font-face
+        await document.fonts.load('1em Oswald');
+        await document.fonts.ready;
+
         this.logo = new NeonLogo(app);
 
         // Сохраняем тикер в реф из setup
