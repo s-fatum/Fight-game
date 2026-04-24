@@ -6,11 +6,11 @@
                 @start="handleStart"
             />
 
-            <!--        <EnemyRoulette-->
-            <!--            v-if="step === 'roulette'"-->
-            <!--            :targetEnemy="targetEnemy"-->
-            <!--            @finished="onRouletteFinished"-->
-            <!--        />-->
+            <EnemyRoulette
+                v-if="step === 'roulette'"
+                :targetEnemy="targetEnemy"
+                @finished="onRouletteFinished"
+            />
 
             <!--        <DiceOverlay-->
             <!--            v-if="step === 'dices'"-->

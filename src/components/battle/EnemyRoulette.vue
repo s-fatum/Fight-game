@@ -1,92 +1,142 @@
 <template>
-    <div class="enemy-roulette-overlay">
-        <div class="roulette-content">
-            <h3>Выбор противника...</h3>
-            <div class="spinner">
-                <div class="target-pointer"></div>
-                <div class="spinner-track" :style="{ transform: `translateY(${offset}px)` }">
-                    <div v-for="(item, idx) in roulettePool" :key="idx" class="spinner-item">
-                        <img :src="'/src/assets/characters/avatars/' + item.avatar" class="spinner-img">
+    <div class="enemy-chant-overlay">
+        <div class="chant-container">
+            <div class="loader-ring"></div>
+
+            <div class="chant-content">
+                <transition name="word-pop" mode="out-in">
+                    <div
+                        :key="currentWord"
+                        class="chant-word"
+                        :class="{ 'final-word': isLastWord }"
+                    >
+                        {{ currentWord }}
                     </div>
-                </div>
+                </transition>
             </div>
+
+            <div class="chant-sub-text">Определение противника...</div>
         </div>
     </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref } from 'vue';
-import { useBattleStore } from '@/store/BattleStore';
+import { defineComponent, onMounted, ref, computed } from 'vue'; // Добавлен computed
 
 export default defineComponent({
-    name: 'EnemyRoulette',
-    props: {
-        targetEnemy: { type: Object, required: true }
-    },
+    name: 'EnemyChant',
     emits: ['finished'],
-    setup(props, { emit }) {
-        const store = useBattleStore();
-        const offset = ref(0);
-        const itemHeight = 200;
-        const roulettePool = ref<any[]>([]);
+    setup(_, { emit }) {
+        const chants = [
+            ["Эники", "беники", "ели", "вареники", "БУМ!"],
+            ["Раз", "два", "три", "четыре", "пять", "я", "иду", "искать", "БАЦ!"],
+            ["Шшел", "козел", "по", "лесу", "нашел", "принцессу", "ЕСТЬ!"],
+            ["Раз", "два", "три", "четыре", "пять", "Я", "иду", "тебя", "искать!", "КТО?"],
+            ["На", "золотом", "крыльце", "сидели", "КТО", "ТЫ", "БУДЕШЬ", "ТАКОЙ?", "ВЫХОДИ!"],
+            ["Катилось", "яблоко", "по", "огороду", "И", "упало", "в", "воду", "БУЛЬ!"]
+        ];
 
-        onMounted(async () => {
-            const opponents = store.availableFighters.filter(f => f.id !== store.selectedFighterId);
-            const repeats = 10;
-            roulettePool.value = Array(repeats).fill(opponents).flat();
+        const selectedChant = chants[Math.floor(Math.random() * chants.length)]!;
+        const currentWordIndex = ref(0);
+        const chantSpeed = 600;
 
-            const targetIdx = (repeats - 2) * opponents.length + opponents.findIndex(e => e.id === props.targetEnemy.id);
-
-            // Небольшая задержка для инициации CSS перехода
-            setTimeout(() => {
-                offset.value = -(targetIdx * itemHeight);
-            }, 50);
-
-            // Время анимации + небольшая пауза перед скрытием
-            setTimeout(() => {
-                emit('finished');
-            }, 4000);
+        // Исправлено: берем длину выбранной считалочки
+        const isLastWord = computed(() => {
+            return currentWordIndex.value === selectedChant.length - 1;
         });
 
-        return { offset, roulettePool };
+        const currentWord = computed(() => {
+            return selectedChant[currentWordIndex.value];
+        });
+
+        onMounted(() => {
+            const interval = setInterval(() => {
+                if (currentWordIndex.value < selectedChant.length - 1) {
+                    currentWordIndex.value++;
+                } else {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        emit('finished');
+                    }, 80000);
+                }
+            }, chantSpeed);
+        });
+
+        return {
+            currentWord,
+            isLastWord
+        };
     }
 });
 </script>
 
 <style scoped lang="scss">
-.enemy-roulette-overlay {
+.enemy-chant-overlay {
     position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.9);
-    z-index: 999;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    z-index: 100;
+    backdrop-filter: blur(10px);
 }
-.spinner {
-    width: 200px;
-    height: 200px;
-    overflow: hidden;
-    border: 4px solid #ffd700;
+
+.chant-container {
     position: relative;
-    background: #111;
-}
-.spinner-track {
-    transition: transform 3.5s cubic-bezier(0.15, 0, 0.15, 1);
-}
-.spinner-item {
-    height: 200px;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    img { width: 140px; height: 140px; }
 }
-.target-pointer {
+
+.chant-word {
+    font-family: 'Oswald', sans-serif;
+    font-size: 3rem;
+    color: #fff;
+    text-transform: uppercase;
+    text-align: center;
+    min-height: 4.5rem;
+
+    &.final-word {
+        color: #ffb700;
+        font-size: 5rem;
+        /* Твои золотые тени */
+        text-shadow:
+            0 0 10px rgba(255, 183, 0, 0.4),
+            0 0 20px 2px rgba(255, 174, 0, 0.5),
+            0 0 1px 1px #ff9900;
+    }
+}
+
+/* Анимация появления слова */
+.word-pop-enter-active {
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.word-pop-enter-from {
+    transform: scale(0.5);
+    opacity: 0;
+}
+
+.chant-sub-text {
+    margin-top: 2rem;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+}
+
+.loader-ring {
     position: absolute;
-    top: 50%; left: 0; width: 100%; height: 2px;
-    background: #ffd700;
-    z-index: 10;
-    transform: translateY(-50%);
+    width: 350px;
+    height: 350px;
+    border: 2px solid rgba(255, 183, 0, 0.1);
+    border-top: 2px solid #ffb700;
+    border-radius: 50%;
+    animation: spin 2s linear infinite;
+    margin-top: -75px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 </style>
