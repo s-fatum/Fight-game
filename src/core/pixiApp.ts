@@ -13,7 +13,7 @@ class PixiManager {
 
         const app = new Application();
         await app.init({
-            //preference: 'canvas', - если красота не нужна
+            preference: 'canvas', //- если красота не нужна
             resizeTo: window,
             resolution: window.devicePixelRatio || 1,
             autoDensity: true,

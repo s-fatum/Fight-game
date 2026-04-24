@@ -1,15 +1,19 @@
 <template>
-    <div class="panel-section">
-        <h3 class="section-title">Dice Buy</h3>
-        <div class="dice-status">
-            <span class="blue">{{ store.purchasedDiceCount }} шт.</span>
+    <div class="dice-buyer">
+        <div class="dice-info">
+            <span class="label">Dice Buy</span>
+            <div class="count-wrapper">
+                <span class="count">{{ store.purchasedDiceCount }}</span>
+                <span class="unit">шт.</span>
+            </div>
         </div>
+
         <button
-            @click="store.buyDice()"
+            class="buy-btn"
+            @click="store.buyDice"
             :disabled="!store.canBuyDice"
-            class="buy-dice-btn"
         >
-            Купить (+1 за {{ store.nextDicePrice }} 🪙)
+            <span class="btn-text">Купить (+1 за {{ store.nextDicePrice }} 🪙)</span>
         </button>
     </div>
 </template>
@@ -28,15 +32,65 @@ export default defineComponent({
 </script>
 
 <style scoped lang="scss">
-.buy-dice-btn {
-    width: 100%;
+.dice-buyer {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.dice-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+
+    .label {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.5);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .count {
+        font-size: 24px;
+        font-weight: bold;
+        color: #00d2d3; /* Яркий бирюзовый неон */
+        text-shadow: 0 0 10px rgba(0, 210, 211, 0.5);
+    }
+
+    .unit {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.4);
+        margin-left: 4px;
+    }
+}
+
+.buy-btn {
+    position: relative;
     padding: 12px;
-    background: #1e88e5;
-    border: none;
-    color: white;
+    background: linear-gradient(180deg, rgba(30, 136, 229, 0.3) 0%, rgba(30, 136, 229, 0.1) 100%);
+    border: 1px solid #1e88e5;
     border-radius: 8px;
-    font-weight: bold;
+    color: #fff;
     cursor: pointer;
-    &:disabled { opacity: 0.3; cursor: not-allowed; }
+    overflow: hidden;
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+        background: rgba(30, 136, 229, 0.4);
+        box-shadow: 0 0 15px rgba(30, 136, 229, 0.4);
+        border-color: #64b5f6;
+    }
+
+    &:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+        border-color: #444;
+    }
+
+    .btn-text {
+        font-weight: bold;
+        font-size: 13px;
+        letter-spacing: 0.5px;
+    }
 }
 </style>

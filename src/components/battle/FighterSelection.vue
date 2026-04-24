@@ -69,9 +69,9 @@ export default defineComponent({
     position: relative;
     overflow: hidden;;
     box-shadow:
-        0 0 10px rgba(49, 180, 255, 0.4),
-        0 0 20px 2px rgba(106, 195, 251, 0.61),
-        0 0 1px 1px #a1dcff;
+        0 0 10px rgba(17, 61, 85, 0.4),
+        0 0 20px 2px rgba(45, 77, 96, 0.61),
+        0 0 1px 1px #405765;
 }
 
 .main-layout {
@@ -113,5 +113,23 @@ export default defineComponent({
         box-shadow: 0 0 40px rgba(30, 136, 229, 0.8);
         transform: scale(1.05);
     }
+}
+
+.controls-side {
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    padding-left: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px; /* Большой отступ между кубиками и ставками */
+}
+
+/* Можно добавить микро-заголовок секции */
+.section-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: rgba(255, 255, 255, 0.3);
+    text-transform: uppercase;
+    margin-bottom: 10px;
 }
 </style>

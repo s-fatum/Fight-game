@@ -85,4 +85,20 @@ main,
 .fade-leave-to {
     opacity: 0;
 }
+
+/* Добавить в App.vue или глобальные стили */
+.section-title, .stat-label, .fighter-card__name {
+    font-family: 'Oswald', sans-serif; /* Популярный игровой шрифт */
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Эффект "золотого текста" для сумм */
+.gold-text {
+    color: #ffd700;
+    background: linear-gradient(180deg, #fff9c4 0%, #fbc02d 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
 </style>

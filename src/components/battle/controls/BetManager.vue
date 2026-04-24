@@ -1,28 +1,25 @@
 <template>
-    <div class="panel-section bet-manager">
-        <h3 class="section-title">Выбор ставки</h3>
+    <div class="bet-manager">
+        <div class="section-title">Выбор ставки</div>
 
         <div class="bet-display">
-            <input
-                type="number"
-                :value="store.betAmount"
-                readonly
-                class="bet-input-field"
-            />
-            <span class="currency-label">🪙</span>
+            <span class="amount">{{ store.betAmount }}</span>
+            <span class="currency">🪙</span>
         </div>
 
         <div class="bet-grid">
             <button
                 v-for="amount in betOptions"
                 :key="amount"
+                class="bet-btn"
+                :disabled="!store.canAffordBet(amount)"
                 @click="store.addToBet(amount)"
             >
                 +{{ amount }}
             </button>
         </div>
 
-        <button @click="store.resetBet()" class="reset-bet-btn">
+        <button class="reset-bet-link" @click="store.resetBet()">
             Сбросить ставку
         </button>
     </div>
@@ -33,12 +30,14 @@ import { defineComponent } from 'vue';
 import { useBattleStore } from '@/store/BattleStore';
 
 export default defineComponent({
-    name: 'BetManager',
+    name: 'FighterSelection',
+    emits: ['start'],
     setup() {
         const store = useBattleStore();
-        if (store.betAmount === 0) {
-            store.addToBet(5);
+        if (!store.betAmount) {
+            store.betAmount = 5;
         }
+
         const betOptions = [10, 50, 100, 200, 500, 1000];
 
         return { store, betOptions };
@@ -47,6 +46,41 @@ export default defineComponent({
 </script>
 
 <style scoped lang="scss">
+/* Сюда вставляешь стили из предыдущего сообщения */
+.bet-manager {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.section-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: rgba(255, 255, 255, 0.3);
+    text-transform: uppercase;
+}
+
+.bet-display {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+
+    .amount {
+        font-size: 36px;
+        font-family: 'Oswald', sans-serif;
+        color: #ffd700;
+        text-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+    }
+
+    .currency {
+        font-size: 18px;
+        margin-left: 5px;
+    }
+}
+
 .bet-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -54,25 +88,39 @@ export default defineComponent({
 }
 
 .bet-btn {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #fff;
-    padding: 10px;
-    border-radius: 4px;
-    font-size: 14px;
+    border-radius: 6px;
+    color: rgba(255, 255, 255, 0.8);
+    padding: 10px 5px;
+    font-size: 13px;
     cursor: pointer;
-    &:hover { background: rgba(255, 255, 255, 0.15); }
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.3);
+        color: #fff;
+    }
+
+    &:disabled {
+        opacity: 0.3;
+        border-color: #2c3e50;
+    }
 }
 
-.bet-display {
-    background: #fff; /* Белый инпут как на макете */
-    border-radius: 4px;
-    margin-bottom: 15px;
-    input {
-        color: #000;
-        font-size: 24px;
-        font-weight: bold;
-        text-align: center;
+.reset-bet-link {
+    background: none;
+    border: none;
+    color: #ff4757;
+    font-size: 12px;
+    text-decoration: underline;
+    cursor: pointer;
+    align-self: center;
+    opacity: 0.7;
+
+    &:hover {
+        opacity: 1;
     }
 }
 </style>

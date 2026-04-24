@@ -22,7 +22,6 @@ export const useBattleStore = defineStore('battle', {
         currentRound: null as any,
         isSlotSpinning: false,
 
-        // --- Болтливый лог ---
         logs: [] as string[]
     }),
 
@@ -30,14 +29,20 @@ export const useBattleStore = defineStore('battle', {
         nextDicePrice: (state) => (state.purchasedDiceCount + 1) * 10,
         canBuyDice(state): boolean {
             const userStore = useUserStore();
-            return userStore.balance >= this.nextDicePrice && state.purchasedDiceCount < 9;
+            const price = this.nextDicePrice;
+            // Баланс должен покрывать и стоимость кубика, и уже отложенную ставку
+            return userStore.balance >= (state.betAmount + price) && state.purchasedDiceCount < 9;
+        },
+        canAffordBet: (state) => (amount: number): boolean => {
+            const userStore = useUserStore();
+            return userStore.balance >= (state.betAmount + amount);
         }
     },
 
     actions: {
         addLog(message: string) {
             const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            this.logs.unshift(`[${time}] ${message}`); // Новые логи сверху
+            this.logs.unshift(`[${time}] ${message}`);
             console.log(`[LOG]: ${message}`);
         },
 

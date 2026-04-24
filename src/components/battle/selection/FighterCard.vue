@@ -64,11 +64,20 @@ export default defineComponent({
         0 0 1px 1px #a1dcff;
 
     &.selected {
-        border-color: #ffb700;
+        border: 1px solid #ffb700 !important;
+
+        /* Твой набор теней + внутренний блик для объема */
         box-shadow:
-            0 0 10px rgba(255, 183, 0, 0.4),
-            0 0 20px 2px rgba(255, 174, 0, 0.5),
-            0 0 1px 1px #ff9900;
+            0 0 10px rgba(255, 183, 0, 0.4),      /* Мягкое внешнее облако */
+            0 0 20px 2px rgba(255, 174, 0, 0.5),  /* Интенсивное свечение */
+            0 0 1px 1px #ff9900,                  /* Контурная резкость */
+            inset 0 0 12px rgba(255, 183, 0, 0.2); /* Внутренний свет (эффект грани) */
+
+        /* Фон карточки при выделении */
+        background: rgba(255, 183, 0, 0.05);
+
+        /* Плавный переход */
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         transform: translateY(-5px);
     }
 
