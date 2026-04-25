@@ -4,8 +4,6 @@
 
             <div class="dice-canvas-section">
                 <div ref="pixiContainer" class="pixi-wrapper"></div>
-                <div class="scanner-line"></div>
-                <div class="corner-label">MODIFICATION_ZONE</div>
             </div>
 
             <div class="boosts-section">
@@ -18,32 +16,13 @@
                     </div>
                 </div>
             </div>
-
-            <div class="player-profile">
-                <div class="hero-showcase">
-                    <div class="hero-name-tag">{{ selectedFighter.name }}</div>
-                    <div class="big-avatar-frame">
-                        <img :src="heroAvatar" class="hero-img">
-                        <div class="frame-glare"></div>
-                    </div>
-                </div>
-
-                <div class="player-stats">
-                    <div v-for="(val, key) in playerStats" :key="key" class="stat-bar-container">
-                        <div class="stat-info">
-                            <span>{{ key.toUpperCase() }}</span>
-                            <span class="current-val">{{ Math.round(val.current) }}</span>
-                        </div>
-                        <div class="bar-bg">
-                            <div class="bar-fill"
-                                 :style="{ width: (val.current / val.max * 100) + '%', backgroundColor: val.color }">
-                                <div class="bar-glow"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="player-card">
+                <FighterCard
+                    v-if="player"
+                    :fighter="player"
+                    :is-selected="false"
+                />
             </div>
-
         </div>
     </div>
 </template>
@@ -53,8 +32,16 @@ import { defineComponent, markRaw } from 'vue';
 import { pixiManager } from '@/core/pixiApp';
 import { DiceCore } from '@/core/DiceCore';
 import gsap from 'gsap';
+import FighterCard from '@/components/battle/selection/FighterCard.vue';
+import { useBattleStore } from '@/store/BattleStore.ts';
 
 export default defineComponent({
+    name: 'DicePreparation',
+    components: { FighterCard },
+    setup() {
+        const battleStore = useBattleStore();
+        return { battleStore };
+    },
     props: {
         selectedFighter: { type: Object, default: () => ({ name: 'ФЛЕШКА', avatar_hero: 'flash_h.jpg' }) },
         values: { type: Array as () => string[], default: () => ['heart', 'fist', 'crit', 'fist', 'heart'] }
@@ -64,25 +51,17 @@ export default defineComponent({
             diceCore: null as DiceCore | null,
             // Для анимации цифр в центральной панели
             displayBoosts: { heart: 0, fist: 0, crit: 0 },
-            // Для анимации полосок игрока
-            playerStats: {
-                hp:   { current: 100, max: 200, color: '#42ff78' },
-                atk:  { current: 15,  max: 100, color: '#ffb342' },
-                crit: { current: 10,  max: 100, color: '#c442ff' }
-            }
         };
     },
     computed: {
-        heroAvatar() {
-            return new URL(`/src/assets/characters/avatars/${this.selectedFighter.avatar_hero}`, import.meta.url).href;
-        },
+        player() { return this.battleStore.player; },
         backgroundStyle() {
             return { background: `url(${new URL('@/assets/locations/hangar_bg.jpg', import.meta.url).href}) center/cover no-repeat` };
         }
     },
     async mounted() {
         const container = this.$refs.pixiContainer as HTMLElement;
-        const app = markRaw(await pixiManager.init({ resizeTo: container, manageStyles: false }));
+        const app = markRaw(await pixiManager.init({ resizeTo: container}));
 
         if (container && app.canvas) {
             container.appendChild(app.canvas);
@@ -193,60 +172,44 @@ export default defineComponent({
     .stat-value { font-size: 2.5rem; font-weight: 800; }
 }
 
-.player-profile {
-    padding: 40px;
+.player-card {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-}
+    height: 100%;
 
-.big-avatar-frame {
-    width: 320px;
-    height: 320px;
-    margin: 0 auto;
-    position: relative;
-    border: 3px solid #ff00ff; // Неоновый пурпур
-    box-shadow: 0 0 20px rgba(255, 0, 255, 0.4);
-
-    .hero-img { width: 100%; height: 100%; object-fit: cover; }
-}
-
-.hero-name-tag {
-    font-size: 2rem;
-    color: #fff;
-    text-align: center;
-    margin-bottom: 20px;
-    letter-spacing: 5px;
-}
-
-.stat-bar-container {
-    margin-top: 20px;
-
-    .stat-info {
+    :deep(.fighter-card) {
+        height: 100% !important;
         display: flex;
-        justify-content: space-between;
-        color: #fff;
-        font-size: 0.9rem;
-        margin-bottom: 5px;
-    }
+        flex-direction: column;
 
-    .bar-bg {
-        height: 15px;
-        background: rgba(255,255,255,0.1);
-        border-radius: 10px;
-        overflow: hidden;
-    }
+        .fighter-card__avatar-wrapper {
+            aspect-ratio: auto !important;
+            height: auto !important;
+            max-height: 500px;
+            order: 3;
+        }
 
-    .bar-fill {
-        height: 100%;
-        transition: width 0.1s ease-out;
-        position: relative;
-    }
+        .fighter-card__img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: top;
+        }
 
-    .bar-glow {
-        position: absolute;
-        right: 0; top: 0; bottom: 0; width: 10px;
-        background: #fff; filter: blur(5px);
+        .fighter-card__name {
+            margin-top: 15px;
+            order: 1;
+        }
+
+        .fighter-stats {
+            order: 2;
+            margin: 0 0 15px;
+        }
+
+        .stat-bar-bg {
+            height: 8px;
+
+        }
     }
 }
 </style>
