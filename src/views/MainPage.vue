@@ -6,17 +6,17 @@
                 @start="handleStart"
             />
 
-            <EnemyRoulette
-                v-if="step === 'roulette'"
+            <DiceOverlay
+                v-if="step === 'dices'"
+                :values="diceValues"
+                @finished="onDicesFinished"
+            />
+
+            <EnemySelection
+                v-if="step === 'roulette' && false"
                 :targetEnemy="targetEnemy"
                 @finished="onRouletteFinished"
             />
-
-            <!--        <DiceOverlay-->
-            <!--            v-if="step === 'dices'"-->
-            <!--            :values="diceValues"-->
-            <!--            @finished="onDicesFinished"-->
-            <!--        />-->
         </div>
     </div>
 </template>
@@ -39,9 +39,9 @@ export default defineComponent({
             logo: null as NeonLogo | null,
         };
     },
-    components: { FighterSelection, EnemyRoulette: EnemySelection, DiceOverlay },
+    components: { FighterSelection, EnemySelection, DiceOverlay },
     setup() {
-        const step = ref<'intro' | 'selection' | 'roulette' | 'dices'>('intro');
+        const step = ref<'intro' | 'selection' | 'dices' | 'roulette'>('intro');
         const pixiTicker = ref<(() => void) | null>(null);
 
         const store = useBattleStore();
@@ -56,25 +56,22 @@ export default defineComponent({
             const enemy = await store.prepareBattleData();
             if (enemy) {
                 targetEnemy.value = enemy;
-                step.value = 'roulette';
             }
-        };
 
-        const onRouletteFinished = async () => {
-            // Можно добавить логику подготовки броска здесь
-            await store.startDiceRolling();
-
-            // Здесь можно подтянуть реальные значения из стора
-            // Для теста используем твой набор:
+            // todo real data
             diceValues.value = ['heart', 'fist', 'crit', 'fist', 'heart', 'fist', 'crit', 'heart', 'fist'];
+            await store.startDiceRolling();
 
             step.value = 'dices';
         };
 
-        const onDicesFinished = async () => {
-            // Переход к самой битве (BattlePage.vue)
+        const onRouletteFinished = async () => {
             store.applyDiceBoosts();
             await store.startMainFight();
+        };
+
+        const onDicesFinished = async () => {
+            step.value = 'roulette';
         };
 
         return { step, pixiTicker, handleStart, onRouletteFinished, onDicesFinished, targetEnemy, diceValues };
