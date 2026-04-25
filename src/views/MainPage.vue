@@ -29,7 +29,7 @@ import { pixiManager } from '@/core/pixiApp';
 import { NeonLogo } from '@/core/NeonLogo';
 import FighterSelection from '@/components/battle/FighterSelection.vue';
 import EnemySelection from '@/components/battle/EnemySelection.vue';
-import DiceOverlay from '@/components/dices/DiceOverlay.vue';
+import DicePreparation from '@/components/dices/DicePreparation.vue';
 
 export default defineComponent({
     name: 'MainPage',
@@ -39,7 +39,7 @@ export default defineComponent({
             logo: null as NeonLogo | null,
         };
     },
-    components: { FighterSelection, EnemySelection, DiceOverlay },
+    components: { FighterSelection, EnemySelection, DiceOverlay: DicePreparation },
     setup() {
         const step = ref<'intro' | 'selection' | 'dices' | 'roulette'>('intro');
         const pixiTicker = ref<(() => void) | null>(null);
@@ -76,7 +76,11 @@ export default defineComponent({
 
         return { step, pixiTicker, handleStart, onRouletteFinished, onDicesFinished, targetEnemy, diceValues };
     },
-    async mounted() {
+    mounted: async function() {
+        if (this.step === 'dices' || this.step === 'roulette') {
+            return;
+        }
+
         this.$emit('toggle-header', false);
 
         const app = await pixiManager.init();
