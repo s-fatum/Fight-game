@@ -14,10 +14,10 @@
         <p class="fighter-card__name">{{ fighter.name }}</p>
 
         <div class="fighter-stats">
-            <div class="stat-row" v-for="stat in stats" :key="stat.label">
+            <div class="stat-row" v-for="stat in animatedStats" :key="stat.label">
                 <div class="stat-info">
                     <span class="stat-label">{{ stat.label }}</span>
-                    <span class="stat-val">{{ stat.value }}</span>
+                    <span class="stat-val">{{ Math.round(stat.displayValue) }}{{ stat.unit }}</span>
                 </div>
                 <div class="stat-bar-bg">
                     <div :class="['stat-bar-fill', stat.class]" :style="{ width: stat.width }"></div>
@@ -28,7 +28,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed } from 'vue';
+import { defineComponent, computed, reactive, watch } from 'vue';
+import gsap from 'gsap';
 
 export default defineComponent({
     name: 'FighterCard',
@@ -38,12 +39,52 @@ export default defineComponent({
     },
     emits: ['select'],
     setup(props) {
-        const stats = computed(() => [
-            { label: 'HP', value: props.fighter.maxHealth, width: '100%', class: 'hp' },
-            { label: 'ATK', value: props.fighter.attack, width: (props.fighter.attack * 2) + '%', class: 'atk' },
-            { label: 'CRIT', value: (props.fighter.critChance || 5) + '%', width: (props.fighter.critChance || 5) + '%', class: 'crit' }
+        // Локальные значения для "набегания" цифр и полосок
+        const internalStats = reactive({
+            hp: props.fighter.maxHealth,
+            atk: props.fighter.attack,
+            crit: props.fighter.crit || 5
+        });
+
+        // Универсальный метод анимации
+        const tweenStat = (key: keyof typeof internalStats, value: number) => {
+            gsap.to(internalStats, {
+                [key]: value,
+                duration: 0.6,
+                ease: "power2.out"
+            });
+        };
+
+        // Следим за изменениями в объекте fighter (из стора)
+        watch(() => props.fighter.maxHealth, (v) => tweenStat('hp', v));
+        watch(() => props.fighter.attack, (v) => tweenStat('atk', v));
+        watch(() => props.fighter.crit, (v) => tweenStat('crit', v || 5));
+
+        const animatedStats = computed(() => [
+            {
+                label: 'HP',
+                displayValue: internalStats.hp,
+                width: '100%',
+                class: 'hp',
+                unit: ''
+            },
+            {
+                label: 'ATK',
+                displayValue: internalStats.atk,
+                width: Math.min(100, internalStats.atk * 0.8) + '%', // Коэффициент под твой дизайн
+                class: 'atk',
+                unit: ''
+            },
+            {
+                label: 'CRIT',
+                displayValue: internalStats.crit,
+                width: Math.min(100, internalStats.crit) + '%',
+                class: 'crit',
+                unit: '%'
+            }
         ]);
-        return { stats };
+
+        return { animatedStats };
     }
 });
 </script>
@@ -153,6 +194,7 @@ export default defineComponent({
 
 .stat-bar-fill {
     height: 100%;
+    transition: width 0.3s ease-out;
     &.hp { background: #4caf50; box-shadow: 0 0 10px #4caf50; }
     &.atk { background: #ff9800; box-shadow: 0 0 10px #ff9800; }
     &.crit { background: #03a9f4; box-shadow: 0 0 10px #03a9f4; }

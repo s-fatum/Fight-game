@@ -81,23 +81,25 @@ export default defineComponent({
     methods: {
         animateStatGrowth(type: string, count: number) {
             const increments: any = { heart: 10, fist: 15, crit: 2 };
-            const statMap: any = { heart: 'hp', fist: 'atk', crit: 'crit' };
 
-            // 1. Анимация цифр в центральной колонке
+            // 1. Анимация цифр в центральной колонке (оставляем как есть)
             gsap.to(this.displayBoosts, {
                 [type]: this.displayBoosts[type as keyof typeof this.displayBoosts] + (count * increments[type]),
                 duration: 1,
                 ease: "power1.out"
             });
 
-            // 2. Анимация полосок здоровья/атаки игрока
-            const targetStat = statMap[type];
-            if (targetStat) {
-                gsap.to(this.playerStats[targetStat as keyof typeof this.playerStats], {
-                    current: this.playerStats[targetStat as keyof typeof this.playerStats].current + (count * increments[type]),
-                    duration: 1.2,
-                    ease: "back.out(1.7)"
-                });
+            // 2. ОБНОВЛЯЕМ СТОР. Карточка сама подхватит изменения.
+            if (!this.battleStore.player) return;
+
+            if (type === 'heart') {
+                this.battleStore.player.maxHealth += (count * increments.heart);
+            } else if (type === 'fist') {
+                this.battleStore.player.attack += (count * increments.fist);
+            } else if (type === 'crit') {
+                // Если critChance не определен, инициализируем его
+                const currentCrit = this.battleStore.player.crit || 5;
+                this.battleStore.player.crit = currentCrit + (count * increments.crit);
             }
         }
     },
