@@ -6,50 +6,32 @@ export const BattleService = {
         return [
             {
                 id: 1,
-                name: 'Блокнот',
+                name: 'Флешка с логотипом',
                 currentHealth: 100,
                 maxHealth: 100,
                 attack: 15,
-                avatar: 'avatar-3.jpg',
+                avatar: 'flash_h.jpg',
                 crit: 8
             },
             {
                 id: 2,
-                name: 'Ветровка',
+                name: 'Панама с нанесением',
                 currentHealth: 100,
                 maxHealth: 100,
                 attack: 12,
-                avatar: 'avatar-4.jpg',
+                avatar: 'panama_h.jpg',
                 crit: 12
             },
             {
                 id: 3,
-                name: 'Ручка',
+                name: 'Календарь перекидной',
                 currentHealth: 80,
                 maxHealth: 80,
                 attack: 20,
-                avatar: 'avatar-5.jpg',
+                avatar: 'calendar_h.jpg',
                 crit: 5
             },
-            {
-                id: 3,
-                name: 'Кепка',
-                currentHealth: 80,
-                maxHealth: 80,
-                attack: 20,
-                avatar: 'avatar-6.jpg',
-                crit: 5
-            },
-            {
-                id: 3,
-                name: 'Значок',
-                currentHealth: 80,
-                maxHealth: 80,
-                attack: 20,
-                avatar: 'avatar-7.jpg',
-                crit: 5
-            }
-        ];
+         ];
     },
 
     async startBattle(playerFighterId: number, diceCount: number): Promise<{

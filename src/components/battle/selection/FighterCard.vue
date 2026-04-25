@@ -4,7 +4,11 @@
         @click="$emit('select', fighter.id)"
     >
         <div class="fighter-card__avatar-wrapper">
-            <img :src="'/src/assets/characters/avatars/' + fighter.avatar" class="fighter-card__img">
+            <img
+                :src="'/src/assets/characters/avatars/' + fighter.avatar"
+                :alt="fighter.name"
+                class="fighter-card__img"
+            >
         </div>
 
         <p class="fighter-card__name">{{ fighter.name }}</p>
@@ -88,8 +92,6 @@ export default defineComponent({
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 15px;
-        img { max-height: 90%; }
     }
 
     &__name {
@@ -98,6 +100,38 @@ export default defineComponent({
         color: #fff;
         margin-bottom: 20px;
     }
+}
+
+.fighter-card__avatar-wrapper {
+    width: 100%;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: 8px;
+    position: relative;
+    background: #1a1a1a;
+
+    &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.6));
+    }
+}
+
+.fighter-card__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: transform 0.5s ease;
+}
+
+.fighter-card:hover .fighter-card__img {
+    transform: scale(1.1);
+}
+
+.fighter-card.selected .fighter-card__img {
+    filter: brightness(1.2) contrast(1.1);
 }
 
 .stat-row {
