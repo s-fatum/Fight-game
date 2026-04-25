@@ -12,13 +12,13 @@ interface DiceSprite extends PIXI.Sprite {
     shadow: PIXI.Graphics;
 }
 
-export class DiceService {
-    private app: PIXI.Application;
+export class DiceCore {
+    private pixiApp: PIXI.Application;
     private diceSprites: DiceSprite[] = [];
     private textures: Record<string, PIXI.Texture> = {};
 
     constructor(app: PIXI.Application) {
-        this.app = app;
+        this.pixiApp = app;
     }
 
     /**
