@@ -111,10 +111,10 @@ export default defineComponent({
         },
         animateStatGrowth(type: string, count: number) {
             const multipliers: Record<string, number> = { heart: 10, fist: 15, crit: 2 };
-            const increment = count * multipliers[type];
+            const increment = count * multipliers[type]!;
 
             gsap.to(this.displayBoosts, {
-                [type]: this.displayBoosts[type as keyof typeof this.displayBoosts] + increment,
+                [type]: this.displayBoosts[type as keyof typeof this.displayBoosts]! + increment,
                 duration: 1.2,
                 ease: "power2.out",
                 onComplete: () => this.handleGroupComplete()
@@ -130,7 +130,7 @@ export default defineComponent({
         async handleGroupComplete() {
             this.completedGroups++;
             if (this.completedGroups >= this.totalGroups) {
-                await delay(3000); // 3 сек на отрисовку финальных значений
+                await delay(1000);
                 this.isFinished = true;
                 this.diceCore?.destroy();
                 pixiManager.purge();
