@@ -1,27 +1,37 @@
 <template>
     <div class="dice-preparation-screen" :style="backgroundStyle">
-        <div class="hud-frame dice-layout">
+        <div class="hud-frame dice-layout" :class="{ 'is-summary': isFinished }">
 
-            <div class="dice-canvas-section">
+            <div v-if="!isFinished" class="dice-canvas-section">
                 <div ref="pixiContainer" class="pixi-wrapper"></div>
             </div>
 
             <div class="boosts-section">
-                <div class="section-header">УСИЛЕНИЯ</div>
+                <div class="section-header">ТЕКУЩИЕ УСИЛЕНИЯ</div>
                 <div class="boosts-list">
-                    <div v-for="(stat, key) in displayBoosts" :key="key"
-                         class="boost-row" :class="{ 'has-value': stat > 0 }">
-                        <div class="stat-name">{{ key.toUpperCase() }}</div>
-                        <div class="stat-value">+{{ Math.round(stat) }}{{ key === 'crit' ? '%' : '%' }}</div>
+                    <div v-for="key in statKeys" :key="key"
+                         class="boost-row" :class="{ 'has-value': displayBoosts[key] > 0 }">
+                        <div class="stat-name">{{ key === 'heart' ? 'HEALTH' : key.toUpperCase() }}</div>
+                        <div class="stat-value">+{{ Math.round(displayBoosts[key]) }}%</div>
                     </div>
                 </div>
             </div>
+
+            <div v-if="isFinished" class="final-stats-section">
+                <div class="section-header">ИТОГОВЫЕ ПАРАМЕТРЫ</div>
+                <div class="final-list">
+                    <div v-for="key in statKeys" :key="key" class="final-row">
+                        <div class="stat-name">{{ key === 'heart' ? 'HEALTH' : key.toUpperCase() }}</div>
+                        <div class="gold-plate">
+                            <span class="total-value">{{ getFinalValue(key) }}</span>
+                            <span class="bonus-hint">(+{{ Math.round(displayBoosts[key]) }}%)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="player-card">
-                <FighterCard
-                    v-if="player"
-                    :fighter="player"
-                    :is-selected="false"
-                />
+                <FighterCard v-if="player" :fighter="player" :is-selected="false" />
             </div>
         </div>
     </div>
@@ -34,6 +44,7 @@ import { DiceCore } from '@/core/DiceCore';
 import gsap from 'gsap';
 import FighterCard from '@/components/battle/selection/FighterCard.vue';
 import { useBattleStore } from '@/store/BattleStore.ts';
+import { delay } from '@/utils/time'; // Твой хелпер
 
 export default defineComponent({
     name: 'DicePreparation',
@@ -42,15 +53,16 @@ export default defineComponent({
         const battleStore = useBattleStore();
         return { battleStore };
     },
-    props: {
-        selectedFighter: { type: Object, default: () => ({ name: 'ФЛЕШКА', avatar_hero: 'flash_h.jpg' }) },
-        values: { type: Array as () => string[], default: () => ['heart', 'fist', 'crit', 'fist', 'heart'] }
-    },
     data() {
         return {
             diceCore: null as DiceCore | null,
-            // Для анимации цифр в центральной панели
-            displayBoosts: { heart: 0, fist: 0, crit: 0 },
+            isFinished: false,
+            statKeys: ['heart', 'fist', 'crit'] as const,
+            displayBoosts: { heart: 0, fist: 0, crit: 0 } as Record<string, number>,
+            baseStats: { heart: 0, fist: 0, crit: 0 } as Record<string, number>,
+            // Счетчики для авто-перехода
+            totalGroups: 0,
+            completedGroups: 0
         };
     },
     computed: {
@@ -60,8 +72,16 @@ export default defineComponent({
         }
     },
     async mounted() {
+        if (this.player) {
+            this.baseStats = {
+                heart: this.player.maxHealth,
+                fist: this.player.attack,
+                crit: this.player.crit || 5
+            };
+        }
+
         const container = this.$refs.pixiContainer as HTMLElement;
-        const app = markRaw(await pixiManager.init({ resizeTo: container}));
+        const app = markRaw(await pixiManager.init({ resizeTo: container }));
 
         if (container && app.canvas) {
             container.appendChild(app.canvas);
@@ -70,148 +90,113 @@ export default defineComponent({
 
         this.diceCore = new DiceCore(app);
         await this.diceCore.loadAssets();
-        this.diceCore.spawnDiceGrid(this.values);
 
-        setTimeout(() => {
-            this.diceCore?.collectDices((type, count) => {
-                this.animateStatGrowth(type, count);
-            });
-        }, 2000);
+        // Точка истины: значения кубиков (позже придут с бэка)
+        const currentDiceSet = ['heart', 'fist', 'crit', 'fist', 'heart'];
+        this.totalGroups = new Set(currentDiceSet).size; // Считаем уникальные группы
+
+        this.diceCore.spawnDiceGrid(currentDiceSet);
+
+        await delay(2000);
+
+        this.diceCore?.collectDices((type, count) => {
+            this.animateStatGrowth(type, count);
+        });
     },
     methods: {
+        getFinalValue(key: string): number {
+            const base = this.baseStats[key as keyof typeof this.baseStats] || 0;
+            const bonusPercent = this.displayBoosts[key as keyof typeof this.displayBoosts] || 0;
+            return Math.round(base + (base * bonusPercent / 100));
+        },
         animateStatGrowth(type: string, count: number) {
-            const increments: any = { heart: 10, fist: 15, crit: 2 };
+            const multipliers: Record<string, number> = { heart: 10, fist: 15, crit: 2 };
+            const increment = count * multipliers[type];
 
-            // 1. Анимация цифр в центральной колонке (оставляем как есть)
             gsap.to(this.displayBoosts, {
-                [type]: this.displayBoosts[type as keyof typeof this.displayBoosts] + (count * increments[type]),
-                duration: 1,
-                ease: "power1.out"
+                [type]: this.displayBoosts[type as keyof typeof this.displayBoosts] + increment,
+                duration: 1.2,
+                ease: "power2.out",
+                onComplete: () => this.handleGroupComplete()
             });
 
-            // 2. ОБНОВЛЯЕМ СТОР. Карточка сама подхватит изменения.
-            if (!this.battleStore.player) return;
-
-            if (type === 'heart') {
-                this.battleStore.player.maxHealth += (count * increments.heart);
-            } else if (type === 'fist') {
-                this.battleStore.player.attack += (count * increments.fist);
-            } else if (type === 'crit') {
-                // Если critChance не определен, инициализируем его
-                const currentCrit = this.battleStore.player.crit || 5;
-                this.battleStore.player.crit = currentCrit + (count * increments.crit);
+            // Обновляем стор для живой анимации полосок в FighterCard
+            if (this.player) {
+                if (type === 'heart') this.player.maxHealth += increment;
+                else if (type === 'fist') this.player.attack += increment;
+                else if (type === 'crit') this.player.crit = (this.player.crit || 5) + increment;
+            }
+        },
+        async handleGroupComplete() {
+            this.completedGroups++;
+            if (this.completedGroups >= this.totalGroups) {
+                await delay(3000); // 3 сек на отрисовку финальных значений
+                this.isFinished = true;
+                this.diceCore?.destroy();
+                pixiManager.purge();
             }
         }
-    },
-    beforeUnmount() {
-        this.diceCore?.destroy();
-        pixiManager.purge();
     }
 });
 </script>
 
 <style scoped lang="scss">
 .dice-preparation-screen {
-    width: 100vw;
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #050505; // Фоллбэк
+    width: 100vw; height: 100vh;
+    display: flex; align-items: center; justify-content: center;
 }
 
 .dice-layout {
     display: grid;
-    grid-template-columns: 1.2fr 0.8fr 1fr;
-    width: 90%;
-    max-width: 1400px;
-    height: 700px;
-    position: relative;
+    grid-template-columns: 1.2fr 0.8fr 1fr; // Pixi | Boosts | Card
+    width: 95%; max-width: 1600px; height: 750px;
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 
     padding: 40px;
     background: rgba(0, 178, 255, 0.02);
-    backdrop-filter: blur(2px) saturate(150%);
-    -webkit-backdrop-filter: blur(2px);
-    border-radius: 12px;
     border: 2px solid rgba(76, 201, 255, 0.75);
-    overflow: hidden;;
-    box-shadow:
-        0 0 10px rgba(17, 61, 85, 0.4),
-        0 0 20px 2px rgba(45, 77, 96, 0.61),
-        0 0 1px 1px #405765;
+    border-radius: 12px;
+    overflow: hidden;
+
+    &.is-summary {
+        // После скрытия Pixi сетка меняется: Boosts | Final | Card
+        grid-template-columns: 1fr 1fr 1fr;
+    }
 }
 
 .dice-canvas-section {
-    position: relative;
     border-right: 1px solid rgba(76, 201, 255, 0.3);
-    background: rgba(0, 0, 0, 0.5);
-
+    background: rgba(0, 0, 0, 0.4);
     .pixi-wrapper { width: 100%; height: 100%; }
 }
 
-.boosts-section {
-    padding: 40px;
-    background: rgba(76, 201, 255, 0.03);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-
-    .section-header {
-        font-size: 2rem;
-        color: #4cc9ff;
-        text-shadow: 0 0 10px #4cc9ff;
-        margin-bottom: 50px;
-        text-align: center;
-    }
-
-    .boost-row {
-        margin-bottom: 30px;
-        transition: all 0.3s;
-        &.has-value { transform: scale(1.1); color: #ffb700; }
-    }
-
-    .stat-name { font-size: 1.2rem; color: #888; }
-    .stat-value { font-size: 2.5rem; font-weight: 800; }
+.boosts-section, .final-stats-section {
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    .section-header { font-size: 1.5rem; color: #4cc9ff; margin-bottom: 40px; text-transform: uppercase; }
 }
 
-.player-card {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
+.boost-row {
+    margin-bottom: 20px; text-align: center;
+    .stat-name { font-size: 1rem; color: #888; }
+    .stat-value { font-size: 2rem; font-weight: 900; }
+    &.has-value .stat-value { color: #ffb700; text-shadow: 0 0 10px rgba(255, 183, 0, 0.5); }
+}
 
-    :deep(.fighter-card) {
-        height: 100% !important;
-        display: flex;
-        flex-direction: column;
+.final-stats-section {
+    animation: slideIn 0.6s ease-out forwards;
+    .gold-plate {
+        border: 2px solid #ffb700; background: rgba(255, 183, 0, 0.1);
+        padding: 10px 30px; border-radius: 12px; min-width: 220px;
+        display: flex; align-items: baseline; justify-content: center;
+        box-shadow: 0 0 20px rgba(255, 183, 0, 0.2);
 
-        .fighter-card__avatar-wrapper {
-            aspect-ratio: auto !important;
-            height: auto !important;
-            max-height: 500px;
-            order: 3;
-        }
-
-        .fighter-card__img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: top;
-        }
-
-        .fighter-card__name {
-            margin-top: 15px;
-            order: 1;
-        }
-
-        .fighter-stats {
-            order: 2;
-            margin: 0 0 15px;
-        }
-
-        .stat-bar-bg {
-            height: 8px;
-
-        }
+        .total-value { font-size: 2.6rem; font-weight: 900; color: #ffb700; }
+        .bonus-hint { font-size: 1.1rem; color: #ffb700; opacity: 0.7; margin-left: 10px; }
     }
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(50px); }
+    to { opacity: 1; transform: translateX(0); }
 }
 </style>
