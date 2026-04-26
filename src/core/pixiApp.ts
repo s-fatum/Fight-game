@@ -84,6 +84,17 @@ class PixiManager {
     resume() {
         if (this.app) this.app.ticker.start();
     }
+
+    reset() {
+        if (this.app) {
+            this.app.stage.removeChildren(); // Чистим экран
+            this.app.ticker.stop();         // Стопаем логику
+            // Удаляем все кастомные функции из тикера
+            this.app.ticker.addOnce(() => {
+                this.app?.ticker.start();   // Сразу запускаем чистым
+            });
+        }
+    }
 }
 
 export const pixiManager = new PixiManager();

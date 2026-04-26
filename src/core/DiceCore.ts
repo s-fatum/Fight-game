@@ -84,7 +84,6 @@ export class DiceCore {
             dice.zIndex = 20;
 
             // Расчет позиции
-            // Расчет позиции
             const spacingX = dice.width * 1.1;
             const spacingY = dice.height * 0.9;
 

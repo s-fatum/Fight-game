@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { useUserStore } from './UserStore.ts';
 import { BattleService } from "@/api/battle.service";
 import type { Fighter, BattleScenario, GameState } from "@/types";
+import { pixiManager } from "@/core/pixiApp"
 
 export const useBattleStore = defineStore('battle', {
     state: () => ({
@@ -141,6 +142,8 @@ export const useBattleStore = defineStore('battle', {
             } else {
                 this.finalizeGame(false);
             }
+
+
         },
 
         handleBattleEnd() {
@@ -201,6 +204,8 @@ export const useBattleStore = defineStore('battle', {
             this.isBossMode = false;
             this.diceValues = [];
             this.currentState = 'START';
+
+            pixiManager.reset();
             this.setScreen('main');
         },
 
@@ -224,10 +229,5 @@ export const useBattleStore = defineStore('battle', {
         async startDiceRolling() {
             this.currentState = 'ROLLING_DICE';
         },
-
-        confirmDiceResults() {
-            this.applyDiceBoosts(); // Применяем баффы к статам
-            this.currentState = 'APPLYING_BOOSTS';
-        }
     }
 });
