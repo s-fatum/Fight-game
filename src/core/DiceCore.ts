@@ -1,12 +1,12 @@
 import * as PIXI from 'pixi.js';
 import gsap from 'gsap';
 import { toRaw } from 'vue';
-
-// Ассеты
+import type { StatKey } from '@/types.ts'
 import imgHeart from '@/assets/dice/dice_heart.png';
 import imgFist from '@/assets/dice/dice_fist.png';
 import imgCrit from '@/assets/dice/dice_crit.png';
-import type { StatKey } from '@/types.ts'
+import imgBackground from '@/assets/dice/dice_bg.jpg'
+
 
 interface DiceSprite extends PIXI.Sprite {
     diceType: string;
@@ -17,6 +17,7 @@ export class DiceCore {
     private pixiApp: PIXI.Application;
     private diceSprites: DiceSprite[] = [];
     private textures: Record<string, PIXI.Texture> = {};
+    private backgroundSprite: PIXI.Sprite | null = null;
 
     constructor(app: PIXI.Application) {
         this.pixiApp = app;
@@ -30,7 +31,8 @@ export class DiceCore {
         this.textures = await PIXI.Assets.load([
             { alias: 'heart', src: imgHeart },
             { alias: 'fist', src: imgFist },
-            { alias: 'crit', src: imgCrit }
+            { alias: 'crit', src: imgCrit },
+            { alias: 'floorBg', src: imgBackground }
         ]);
     }
 
@@ -39,6 +41,28 @@ export class DiceCore {
      * @param values - массив строк (типов кубиков), приходящий из пропсов компонента
      */
     spawnDiceGrid(values: string[]) {
+        if (this.textures['floorBg']) {
+            const bg = new PIXI.Sprite(this.textures['floorBg']);
+            bg.anchor.set(0.5);
+
+            // Получаем «чистый» объект без Vue-обертки
+            const rawBg = toRaw(bg);
+
+            rawBg.x = this.pixiApp.screen.width / 2;
+            rawBg.y = this.pixiApp.screen.height / 2;
+
+            const scale = Math.max(
+                this.pixiApp.screen.width / rawBg.width,
+                this.pixiApp.screen.height / rawBg.height
+            );
+
+            rawBg.scale.set(scale);
+
+            rawBg.zIndex = 0;
+            this.pixiApp.stage.addChild(rawBg);
+            this.backgroundSprite = bg; // Сохраняем ссылку для очистки
+        }
+
         const columns = 3;
         const total = values.length; // Теперь total берется из переданного аргумента
 
@@ -212,6 +236,10 @@ export class DiceCore {
     }
 
     destroy() {
+        if (this.backgroundSprite) {
+            this.backgroundSprite.destroy();
+        }
+
         this.diceSprites.forEach(s => {
             gsap.killTweensOf(s);
             if (s.shadow) {

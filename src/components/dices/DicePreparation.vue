@@ -149,7 +149,7 @@ export default defineComponent({
                     ]! + increment,
                 duration: 1.2,
                 ease: 'power2.out',
-                //onComplete: () => this.handleGroupComplete(),
+                onComplete: () => this.handleGroupComplete(),
             });
 
             // Обновляем стор для живой анимации полосок в FighterCard
