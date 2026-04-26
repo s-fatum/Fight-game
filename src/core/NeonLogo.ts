@@ -109,4 +109,19 @@ export class NeonLogo {
             force3D: true
         });
     }
+
+    public destroy() {
+        gsap.killTweensOf(this.container);
+
+        if (this.container && this.container.parent) {
+            this.container.parent.removeChild(this.container);
+        }
+
+        this.container.destroy({
+            children: true,
+            texture: true,
+        });
+
+        console.log('✅ NeonLogo: Destroyed');
+    }
 }

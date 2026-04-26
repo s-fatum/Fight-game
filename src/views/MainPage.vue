@@ -52,19 +52,6 @@ export default defineComponent({
             await store.loadFighters();
         });
 
-        const handleStart = async () => {
-            const enemy = await store.prepareBattleData();
-            if (enemy) {
-                targetEnemy.value = enemy;
-            }
-
-            // todo real data
-            diceValues.value = ['heart', 'fist', 'crit', 'fist', 'heart', 'fist', 'crit', 'heart', 'fist'];
-            await store.startDiceRolling();
-
-            step.value = 'dices';
-        };
-
         const onRouletteFinished = async () => {
             store.applyDiceBoosts();
             await store.startMainFight();
@@ -74,7 +61,36 @@ export default defineComponent({
             step.value = 'roulette';
         };
 
-        return { step, pixiTicker, handleStart, onRouletteFinished, onDicesFinished, targetEnemy, diceValues };
+        return { step, pixiTicker, onRouletteFinished, onDicesFinished, targetEnemy, diceValues };
+    },
+    methods: {
+        // Метод для очистки логотипа
+        cleanupLogo() {
+            if (this.logo) {
+                const app = pixiManager.app;
+                if (app && this.pixiTicker) {
+                    app.ticker.remove(this.pixiTicker);
+                }
+                this.logo.destroy(); // Вызываем новый метод
+                this.logo = null;
+            }
+        },
+
+        async handleStart() {
+            // Очищаем логотип перед переходом
+            this.cleanupLogo();
+
+            const store = useBattleStore();
+            const enemy = await store.prepareBattleData();
+            if (enemy) {
+                this.targetEnemy = enemy;
+            }
+
+            this.diceValues = ['heart', 'fist', 'crit', 'fist', 'heart', 'fist', 'crit', 'heart', 'fist'];
+            await store.startDiceRolling();
+
+            this.step = 'dices';
+        }
     },
     mounted: async function() {
         if (this.step === 'dices' || this.step === 'roulette') {
