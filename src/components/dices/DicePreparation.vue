@@ -1,7 +1,9 @@
 <template>
     <div class="dice-preparation-screen" :style="backgroundStyle">
-        <div class="hud-frame dice-layout" :class="{ 'is-summary': isFinished }">
-
+        <div
+            class="hud-frame dice-layout"
+            :class="{ 'is-summary': isFinished }"
+        >
             <div v-if="!isFinished" class="dice-canvas-section">
                 <div ref="pixiContainer" class="pixi-wrapper"></div>
             </div>
@@ -9,10 +11,18 @@
             <div class="boosts-section">
                 <div class="section-header">ТЕКУЩИЕ УСИЛЕНИЯ</div>
                 <div class="boosts-list">
-                    <div v-for="key in statKeys" :key="key"
-                         class="boost-row" :class="{ 'has-value': displayBoosts[key] > 0 }">
-                        <div class="stat-name">{{ key === 'heart' ? 'HEALTH' : key.toUpperCase() }}</div>
-                        <div class="stat-value">+{{ Math.round(displayBoosts[key]) }}%</div>
+                    <div
+                        v-for="key in statKeys"
+                        :key="key"
+                        class="boost-row"
+                        :class="{ 'has-value': displayBoosts[key] > 0 }"
+                    >
+                        <div class="stat-name">
+                            {{ key === 'heart' ? 'HEALTH' : key.toUpperCase() }}
+                        </div>
+                        <div class="stat-value">
+                            +{{ Math.round(displayBoosts[key]) }}%
+                        </div>
                     </div>
                 </div>
             </div>
@@ -21,17 +31,27 @@
                 <div class="section-header">ИТОГОВЫЕ ПАРАМЕТРЫ</div>
                 <div class="final-list">
                     <div v-for="key in statKeys" :key="key" class="final-row">
-                        <div class="stat-name">{{ key === 'heart' ? 'HEALTH' : key.toUpperCase() }}</div>
+                        <div class="stat-name">
+                            {{ key === 'heart' ? 'HEALTH' : key.toUpperCase() }}
+                        </div>
                         <div class="gold-plate">
-                            <span class="total-value">{{ getFinalValue(key) }}</span>
-                            <span class="bonus-hint">(+{{ Math.round(displayBoosts[key]) }}%)</span>
+                            <span class="total-value">{{
+                                getFinalValue(key)
+                            }}</span>
+                            <span class="bonus-hint"
+                                >(+{{ Math.round(displayBoosts[key]) }}%)</span
+                            >
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="player-card">
-                <FighterCard v-if="player" :fighter="player" :is-selected="false" />
+                <FighterCard
+                    v-if="player"
+                    :fighter="player"
+                    :is-selected="false"
+                />
             </div>
         </div>
     </div>
@@ -58,25 +78,32 @@ export default defineComponent({
             diceCore: null as DiceCore | null,
             isFinished: false,
             statKeys: ['heart', 'fist', 'crit'] as const,
-            displayBoosts: { heart: 0, fist: 0, crit: 0 } as Record<string, number>,
+            displayBoosts: { heart: 0, fist: 0, crit: 0 } as Record<
+                string,
+                number
+            >,
             baseStats: { heart: 0, fist: 0, crit: 0 } as Record<string, number>,
             // Счетчики для авто-перехода
             totalGroups: 0,
-            completedGroups: 0
+            completedGroups: 0,
         };
     },
     computed: {
-        player() { return this.battleStore.player; },
+        player() {
+            return this.battleStore.player;
+        },
         backgroundStyle() {
-            return { background: `url(${new URL('@/assets/locations/hangar_bg.jpg', import.meta.url).href}) center/cover no-repeat` };
-        }
+            return {
+                background: `url(${new URL('@/assets/locations/hangar_bg.jpg', import.meta.url).href}) center/cover no-repeat`,
+            };
+        },
     },
     async mounted() {
         if (this.player) {
             this.baseStats = {
                 heart: this.player.maxHealth,
                 fist: this.player.attack,
-                crit: this.player.crit || 5
+                crit: this.player.crit || 5,
             };
         }
 
@@ -85,7 +112,10 @@ export default defineComponent({
 
         if (container && app.canvas) {
             container.appendChild(app.canvas);
-            pixiManager.forceResize(container.clientWidth, container.clientHeight);
+            pixiManager.forceResize(
+                container.clientWidth,
+                container.clientHeight,
+            );
         }
 
         this.diceCore = new DiceCore(app);
@@ -105,26 +135,36 @@ export default defineComponent({
     },
     methods: {
         getFinalValue(key: string): number {
-            const base = this.baseStats[key as keyof typeof this.baseStats] || 0;
-            const bonusPercent = this.displayBoosts[key as keyof typeof this.displayBoosts] || 0;
-            return Math.round(base + (base * bonusPercent / 100));
+            const base =
+                this.baseStats[key as keyof typeof this.baseStats] || 0;
+            const bonusPercent =
+                this.displayBoosts[key as keyof typeof this.displayBoosts] || 0;
+            return Math.round(base + (base * bonusPercent) / 100);
         },
         animateStatGrowth(type: string, count: number) {
-            const multipliers: Record<string, number> = { heart: 10, fist: 15, crit: 2 };
+            const multipliers: Record<string, number> = {
+                heart: 10,
+                fist: 15,
+                crit: 2,
+            };
             const increment = count * multipliers[type]!;
 
             gsap.to(this.displayBoosts, {
-                [type]: this.displayBoosts[type as keyof typeof this.displayBoosts]! + increment,
+                [type]:
+                    this.displayBoosts[
+                        type as keyof typeof this.displayBoosts
+                    ]! + increment,
                 duration: 1.2,
-                ease: "power2.out",
-                onComplete: () => this.handleGroupComplete()
+                ease: 'power2.out',
+                onComplete: () => this.handleGroupComplete(),
             });
 
             // Обновляем стор для живой анимации полосок в FighterCard
             if (this.player) {
                 if (type === 'heart') this.player.maxHealth += increment;
                 else if (type === 'fist') this.player.attack += increment;
-                else if (type === 'crit') this.player.crit = (this.player.crit || 5) + increment;
+                else if (type === 'crit')
+                    this.player.crit = (this.player.crit || 5) + increment;
             }
         },
         async handleGroupComplete() {
@@ -135,21 +175,26 @@ export default defineComponent({
                 this.diceCore?.destroy();
                 pixiManager.purge();
             }
-        }
-    }
+        },
+    },
 });
 </script>
 
 <style scoped lang="scss">
 .dice-preparation-screen {
-    width: 100vw; height: 100vh;
-    display: flex; align-items: center; justify-content: center;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .dice-layout {
     display: grid;
     grid-template-columns: 1.2fr 0.8fr 1fr; // Pixi | Boosts | Card
-    width: 95%; max-width: 1600px; height: 750px;
+    width: 95%;
+    max-width: 1600px;
+    height: 750px;
     transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 
     padding: 40px;
@@ -167,36 +212,118 @@ export default defineComponent({
 .dice-canvas-section {
     border-right: 1px solid rgba(76, 201, 255, 0.3);
     background: rgba(0, 0, 0, 0.4);
-    .pixi-wrapper { width: 100%; height: 100%; }
+    .pixi-wrapper {
+        width: 100%;
+        height: 100%;
+    }
 }
 
-.boosts-section, .final-stats-section {
-    display: flex; flex-direction: column; justify-content: center; align-items: center;
-    .section-header { font-size: 1.5rem; color: #4cc9ff; margin-bottom: 40px; text-transform: uppercase; }
+.boosts-section,
+.final-stats-section {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    .section-header {
+        font-size: 1.5rem;
+        color: #4cc9ff;
+        margin-bottom: 40px;
+        text-transform: uppercase;
+    }
 }
 
 .boost-row {
-    margin-bottom: 20px; text-align: center;
-    .stat-name { font-size: 1rem; color: #888; }
-    .stat-value { font-size: 2rem; font-weight: 900; }
-    &.has-value .stat-value { color: #ffb700; text-shadow: 0 0 10px rgba(255, 183, 0, 0.5); }
+    margin-bottom: 20px;
+    text-align: center;
+    .stat-name {
+        font-size: 1rem;
+        color: #888;
+    }
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 900;
+    }
+    &.has-value .stat-value {
+        color: #ffb700;
+        text-shadow: 0 0 10px rgba(255, 183, 0, 0.5);
+    }
 }
 
 .final-stats-section {
     animation: slideIn 0.6s ease-out forwards;
     .gold-plate {
-        border: 2px solid #ffb700; background: rgba(255, 183, 0, 0.1);
-        padding: 10px 30px; border-radius: 12px; min-width: 220px;
-        display: flex; align-items: baseline; justify-content: center;
+        border: 2px solid #ffb700;
+        background: rgba(255, 183, 0, 0.1);
+        padding: 10px 30px;
+        border-radius: 12px;
+        min-width: 220px;
+        display: flex;
+        align-items: baseline;
+        justify-content: center;
         box-shadow: 0 0 20px rgba(255, 183, 0, 0.2);
 
-        .total-value { font-size: 2.6rem; font-weight: 900; color: #ffb700; }
-        .bonus-hint { font-size: 1.1rem; color: #ffb700; opacity: 0.7; margin-left: 10px; }
+        .total-value {
+            font-size: 2.6rem;
+            font-weight: 900;
+            color: #ffb700;
+        }
+        .bonus-hint {
+            font-size: 1.1rem;
+            color: #ffb700;
+            opacity: 0.7;
+            margin-left: 10px;
+        }
+    }
+}
+
+.player-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+
+    :deep(.fighter-card) {
+        height: 100% !important;
+        display: flex;
+        flex-direction: column;
+
+        .fighter-card__avatar-wrapper {
+            aspect-ratio: auto !important;
+            height: auto !important;
+            max-height: 500px;
+            order: 3;
+        }
+
+        .fighter-card__img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: top;
+        }
+
+        .fighter-card__name {
+            margin-top: 15px;
+            order: 1;
+        }
+
+        .fighter-stats {
+            order: 2;
+            margin: 0 0 15px;
+        }
+
+        .stat-bar-bg {
+            height: 8px;
+        }
     }
 }
 
 @keyframes slideIn {
-    from { opacity: 0; transform: translateX(50px); }
-    to { opacity: 1; transform: translateX(0); }
+    from {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 </style>
