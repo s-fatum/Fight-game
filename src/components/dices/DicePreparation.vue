@@ -1,5 +1,5 @@
 <template>
-    <div class="dice-preparation-screen" :style="backgroundStyle">
+    <div class="dice-preparation-screen">
         <div
             class="hud-frame dice-layout"
             :class="{ 'is-summary': isFinished }"
@@ -79,7 +79,7 @@ export default defineComponent({
             diceCore: null as DiceCore | null,
             isFinished: false,
             statKeys: ['heart', 'fist', 'crit'] as StatKey[],
-            displayBoosts: { heart: 0, fist: 0, crit: 0 } as Record<string, number>,
+            displayBoosts: { heart: 0, fist: 0, crit: 0 } as Record<StatKey, number>,
             baseStats: { heart: 0, fist: 0, crit: 0 } as Record<string, number>,
             // Счетчики для авто-перехода
             totalGroups: 0,
@@ -89,11 +89,6 @@ export default defineComponent({
     computed: {
         player() {
             return this.battleStore.player;
-        },
-        backgroundStyle() {
-            return {
-                background: `url(${new URL('@/assets/locations/hangar_bg.jpg', import.meta.url).href}) center/cover no-repeat`,
-            };
         },
     },
     async mounted() {
@@ -120,7 +115,7 @@ export default defineComponent({
         await this.diceCore.loadAssets();
 
         // Точка истины: значения кубиков (позже придут с бэка)
-        const currentDiceSet = ['heart', 'fist', 'crit', 'fist', 'heart'];
+        const currentDiceSet = ['heart', 'fist', 'crit', 'fist', 'heart', 'fist', 'crit', 'heart', 'fist'];
         this.totalGroups = new Set(currentDiceSet).size; // Считаем уникальные группы
 
         this.diceCore.spawnDiceGrid(currentDiceSet);
@@ -154,7 +149,7 @@ export default defineComponent({
                     ]! + increment,
                 duration: 1.2,
                 ease: 'power2.out',
-                onComplete: () => this.handleGroupComplete(),
+                //onComplete: () => this.handleGroupComplete(),
             });
 
             // Обновляем стор для живой анимации полосок в FighterCard

@@ -8,7 +8,6 @@
 
             <DiceOverlay
                 v-if="step === 'dices'"
-                :values="diceValues"
                 @finished="onDicesFinished"
             />
 
@@ -46,7 +45,6 @@ export default defineComponent({
 
         const store = useBattleStore();
         const targetEnemy = ref<any>(null);
-        const diceValues = ref<string[]>([]);
 
         onMounted(async () => {
             await store.loadFighters();
@@ -61,7 +59,7 @@ export default defineComponent({
             step.value = 'roulette';
         };
 
-        return { step, pixiTicker, onRouletteFinished, onDicesFinished, targetEnemy, diceValues };
+        return { step, pixiTicker, onRouletteFinished, onDicesFinished, targetEnemy };
     },
     methods: {
         // Метод для очистки логотипа
@@ -86,7 +84,6 @@ export default defineComponent({
                 this.targetEnemy = enemy;
             }
 
-            this.diceValues = ['heart', 'fist', 'crit', 'fist', 'heart', 'fist', 'crit', 'heart', 'fist'];
             await store.startDiceRolling();
 
             this.step = 'dices';
@@ -146,7 +143,7 @@ export default defineComponent({
     overflow: hidden;
     background-image:
         linear-gradient(rgba(10, 20, 30, 0.4), rgba(10, 20, 30, 0.8)),
-        url('@/assets/main_bg.png');
+        url('@/assets/main_bg.jpg');
     background-size: cover;
     background-position: top center;
     background-repeat: no-repeat;

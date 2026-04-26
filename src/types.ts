@@ -39,7 +39,7 @@ export interface UserAccount {
     balance: number;
 }
 
-export type StatKey = 'health' | 'attack' | 'crit';
+export type StatKey = 'heart' | 'fist' | 'crit';
 
 export interface FighterStats {
     health: number;

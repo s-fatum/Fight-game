@@ -53,16 +53,24 @@ export class DiceCore {
             dice.zIndex = 20;
 
             // Расчет позиции
+            // Расчет позиции
             const spacingX = dice.width * 1.1;
             const spacingY = dice.height * 0.9;
-            const groupW = (Math.min(total, columns) - 1) * spacingX;
-            const groupH = (Math.ceil(total / columns) - 1) * spacingY;
 
-            const startX = (this.pixiApp.screen.width / 2) - (groupW / 2);
-            const startY = (this.pixiApp.screen.height / 2) - (groupH / 2);
+            // Количество колонок и рядов
+            const cols = columns;
+            const rows = Math.ceil(total / cols);
 
-            const finalX = startX + (index % columns * spacingX);
-            const finalY = startY + (Math.floor(index / columns) * spacingY);
+            // ВАЖНО: Вычисляем реальные габариты всей "коробки" с кубиками
+            const fullWidth = (cols - 1) * spacingX;
+            const fullHeight = (rows - 1) * spacingY;
+
+            // Центрируем: (Центр экрана) - (Половина габаритов группы)
+            const startX = (this.pixiApp.screen.width / 2) - (fullWidth / 2);
+            const startY = (this.pixiApp.screen.height / 2) - (fullHeight / 2);
+
+            const finalX = startX + (index % cols * spacingX);
+            const finalY = startY + (Math.floor(index / cols) * spacingY);
 
             // Создание тени
             const shadow = new PIXI.Graphics()
