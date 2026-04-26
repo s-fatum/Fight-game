@@ -216,9 +216,18 @@ export default defineComponent({
 .stat-bar-fill {
     height: 100%;
     transition: width 0.3s ease-out;
-    &.hp { background: #4caf50; box-shadow: 0 0 10px #4caf50; }
-    &.atk { background: #ff9800; box-shadow: 0 0 10px #ff9800; }
-    &.crit { background: #03a9f4; box-shadow: 0 0 10px #03a9f4; }
+    &.hp {
+        background: $color-hp;
+        box-shadow: 0 0 10px rgba($color-hp, 0.5);
+    }
+    &.atk {
+        background: $color-atk;
+        box-shadow: 0 0 10px rgba($color-atk, 0.5);
+    }
+    &.crit {
+        background: $color-crit;
+        box-shadow: 0 0 10px rgba($color-crit, 0.5);
+    }
 }
 
 .stat-bar-fill {

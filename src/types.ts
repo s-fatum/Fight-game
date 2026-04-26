@@ -38,3 +38,11 @@ export interface UserAccount {
     lang: string;
     balance: number;
 }
+
+export type StatKey = 'health' | 'attack' | 'crit';
+
+export interface FighterStats {
+    health: number;
+    attack: number;
+    crit: number;
+}

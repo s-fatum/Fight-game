@@ -22,5 +22,12 @@ export default defineConfig({
     },
     server: {
         hmr: true
+    },
+    css: {
+        preprocessorOptions: {
+            scss: {
+                additionalData: `@import "@/assets/styles/_variables.scss";`
+            }
+        }
     }
 })

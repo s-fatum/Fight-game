@@ -18,7 +18,7 @@
                         :class="{ 'has-value': displayBoosts[key] > 0 }"
                     >
                         <div class="stat-name">
-                            {{ key === 'heart' ? 'HEALTH' : key.toUpperCase() }}
+                            {{ getStatName(key) }}
                         </div>
                         <div class="stat-value">
                             +{{ Math.round(displayBoosts[key]) }}%
@@ -32,7 +32,7 @@
                 <div class="final-list">
                     <div v-for="key in statKeys" :key="key" class="final-row">
                         <div class="stat-name">
-                            {{ key === 'heart' ? 'HEALTH' : key.toUpperCase() }}
+                            {{ getStatName(key) }}
                         </div>
                         <div class="gold-plate">
                             <span class="total-value">{{
@@ -64,7 +64,8 @@ import { DiceCore } from '@/core/DiceCore';
 import gsap from 'gsap';
 import FighterCard from '@/components/battle/selection/FighterCard.vue';
 import { useBattleStore } from '@/store/BattleStore.ts';
-import { delay } from '@/utils/time'; // Твой хелпер
+import { delay } from '@/utils/time';
+import type { StatKey } from '@/types.ts'
 
 export default defineComponent({
     name: 'DicePreparation',
@@ -77,11 +78,8 @@ export default defineComponent({
         return {
             diceCore: null as DiceCore | null,
             isFinished: false,
-            statKeys: ['heart', 'fist', 'crit'] as const,
-            displayBoosts: { heart: 0, fist: 0, crit: 0 } as Record<
-                string,
-                number
-            >,
+            statKeys: ['heart', 'fist', 'crit'] as StatKey[],
+            displayBoosts: { heart: 0, fist: 0, crit: 0 } as Record<string, number>,
             baseStats: { heart: 0, fist: 0, crit: 0 } as Record<string, number>,
             // Счетчики для авто-перехода
             totalGroups: 0,
@@ -129,16 +127,16 @@ export default defineComponent({
 
         await delay(2000);
 
-        this.diceCore?.collectDices((type, count) => {
+        this.diceCore?.collectDices((type: StatKey, count: number) => {
             this.animateStatGrowth(type, count);
         });
     },
     methods: {
-        getFinalValue(key: string): number {
+        getFinalValue(key: StatKey): number {
             const base =
-                this.baseStats[key as keyof typeof this.baseStats] || 0;
+                this.baseStats[key] || 0;
             const bonusPercent =
-                this.displayBoosts[key as keyof typeof this.displayBoosts] || 0;
+                this.displayBoosts[key] || 0;
             return Math.round(base + (base * bonusPercent) / 100);
         },
         animateStatGrowth(type: string, count: number) {
@@ -152,7 +150,7 @@ export default defineComponent({
             gsap.to(this.displayBoosts, {
                 [type]:
                     this.displayBoosts[
-                        type as keyof typeof this.displayBoosts
+                        type as StatKey
                     ]! + increment,
                 duration: 1.2,
                 ease: 'power2.out',
@@ -176,6 +174,16 @@ export default defineComponent({
                 pixiManager.purge();
             }
         },
+
+        getStatName(key: string): string {
+            const names: Record<string, string> = {
+                heart: 'Здоровье',
+                fist: 'Атака',
+                crit: 'Шанс крита'
+            };
+
+            return names[key] || key;
+        }
     },
 });
 </script>
@@ -191,20 +199,27 @@ export default defineComponent({
 
 .dice-layout {
     display: grid;
-    grid-template-columns: 1.2fr 0.8fr 1fr; // Pixi | Boosts | Card
+    grid-template-columns: 1.2fr 0.8fr 1fr;
     width: 95%;
     max-width: 1600px;
-    height: 750px;
-    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-
-    padding: 40px;
-    background: rgba(0, 178, 255, 0.02);
-    border: 2px solid rgba(76, 201, 255, 0.75);
+    height: 85vh;
+    max-height: 800px;
+    padding: 2vh 2vw;
+    box-sizing: border-box;
     border-radius: 12px;
     overflow: hidden;
 
+    background: rgba(0, 178, 255, 0.02);
+    backdrop-filter: blur(2px) saturate(150%);
+    -webkit-backdrop-filter: blur(2px);
+    border: 2px solid rgba(76, 201, 255, 0.75);
+    position: relative;
+    box-shadow:
+        0 0 10px rgba(17, 61, 85, 0.4),
+        0 0 20px 2px rgba(45, 77, 96, 0.61),
+        0 0 1px 1px #405765;
+
     &.is-summary {
-        // После скрытия Pixi сетка меняется: Boosts | Final | Card
         grid-template-columns: 1fr 1fr 1fr;
     }
 }
@@ -231,20 +246,31 @@ export default defineComponent({
         text-transform: uppercase;
     }
 }
+.final-row {
+    margin-bottom: 20px;
+
+    .stat-name {
+        font-size: 1.8rem;
+        color: $color-gold;
+        margin-bottom: 10px;
+    }
+}
 
 .boost-row {
-    margin-bottom: 20px;
+    margin-bottom: 40px;
     text-align: center;
+
     .stat-name {
-        font-size: 1rem;
+        font-size: 1.8rem;
         color: #888;
     }
     .stat-value {
         font-size: 2rem;
         font-weight: 900;
+        color: transparent;
     }
     &.has-value .stat-value {
-        color: #ffb700;
+        color: $color-gold;
         text-shadow: 0 0 10px rgba(255, 183, 0, 0.5);
     }
 }
@@ -252,7 +278,7 @@ export default defineComponent({
 .final-stats-section {
     animation: slideIn 0.6s ease-out forwards;
     .gold-plate {
-        border: 2px solid #ffb700;
+        border: 2px solid $color-gold;
         background: rgba(255, 183, 0, 0.1);
         padding: 10px 30px;
         border-radius: 12px;
@@ -265,11 +291,11 @@ export default defineComponent({
         .total-value {
             font-size: 2.6rem;
             font-weight: 900;
-            color: #ffb700;
+            color: $color-gold;
         }
         .bonus-hint {
             font-size: 1.1rem;
-            color: #ffb700;
+            color: $color-gold;
             opacity: 0.7;
             margin-left: 10px;
         }
@@ -280,11 +306,11 @@ export default defineComponent({
     display: flex;
     flex-direction: column;
     height: 100%;
+    overflow: hidden;
 
     :deep(.fighter-card) {
         height: 100% !important;
-        display: flex;
-        flex-direction: column;
+        justify-content: space-between;
 
         .fighter-card__avatar-wrapper {
             aspect-ratio: auto !important;
@@ -294,15 +320,7 @@ export default defineComponent({
         }
 
         .fighter-card__img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: top;
-        }
-
-        .fighter-card__name {
-            margin-top: 15px;
-            order: 1;
+            max-height: 100%;
         }
 
         .fighter-stats {

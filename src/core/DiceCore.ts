@@ -6,6 +6,7 @@ import { toRaw } from 'vue';
 import imgHeart from '@/assets/dice/dice_heart.png';
 import imgFist from '@/assets/dice/dice_fist.png';
 import imgCrit from '@/assets/dice/dice_crit.png';
+import type { StatKey } from '@/types.ts'
 
 interface DiceSprite extends PIXI.Sprite {
     diceType: string;
@@ -104,7 +105,7 @@ export class DiceCore {
      * Логика «схлопывания» кубиков с уведомлением о прогрессе
      * @param onGroupCollected - колбэк (тип_кубика, количество), вызывается в момент начала роста статов
      */
-    async collectDices(onGroupCollected?: (type: string, count: number) => void) {
+    async collectDices(onGroupCollected?: (type: StatKey, count: number) => void) {
         const groups: Record<string, DiceSprite[]> = { heart: [], fist: [], crit: [] };
         const colors: Record<string, number> = { heart: 0xFF3232, fist: 0x3296FF, crit: 0xFFD232 };
 
@@ -118,7 +119,7 @@ export class DiceCore {
 
         let timelineDelay = 0;
 
-        for (const [type, sprites] of Object.entries(groups)) {
+        for (const [type, sprites] of Object.entries(groups) as [StatKey, any[]][]) {
             if (sprites.length === 0) continue;
 
             const rawSprites = sprites.map(s => toRaw(s));

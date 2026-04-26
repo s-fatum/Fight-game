@@ -1,0 +1,11 @@
+// цеета статов
+$color-hp: #4caf50;
+$color-atk: #ff9800;
+$color-crit: #03a9f4;
+$color-gold: #ffb700;
+
+:root {
+  --color-hp: #{$color-hp};
+  --color-atk: #{$color-atk};
+  --color-crit: #{$color-crit};
+}
