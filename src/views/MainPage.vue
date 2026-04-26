@@ -12,7 +12,7 @@
             />
 
             <EnemySelection
-                v-if="step === 'roulette' && false"
+                v-if="step === 'roulette'"
                 :targetEnemy="targetEnemy"
                 @finished="onRouletteFinished"
             />
@@ -57,6 +57,7 @@ export default defineComponent({
 
         const onDicesFinished = async () => {
             step.value = 'roulette';
+            console.log(step);
         };
 
         return { step, pixiTicker, onRouletteFinished, onDicesFinished, targetEnemy };

@@ -42,7 +42,14 @@ export class DiceCore {
      */
     spawnDiceGrid(values: string[]) {
         if (this.textures['floorBg']) {
-            const bg = new PIXI.Sprite(this.textures['floorBg']);
+            // Удаляем старый фон, если он вдруг выжил
+            if (this.backgroundSprite) {
+                this.backgroundSprite.destroy();
+            }
+
+            this.backgroundSprite = new PIXI.Sprite(this.textures['floorBg']);
+            const bg = toRaw(this.backgroundSprite);
+
             bg.anchor.set(0.5);
 
             // Получаем «чистый» объект без Vue-обертки
@@ -236,16 +243,23 @@ export class DiceCore {
     }
 
     destroy() {
+        // Явно удаляем фон из сцены
         if (this.backgroundSprite) {
-            this.backgroundSprite.destroy();
+            if (this.backgroundSprite.parent) {
+                this.backgroundSprite.parent.removeChild(this.backgroundSprite);
+            }
+            this.backgroundSprite.destroy({ children: true, texture: false });
+            this.backgroundSprite = null;
         }
 
         this.diceSprites.forEach(s => {
             gsap.killTweensOf(s);
             if (s.shadow) {
                 gsap.killTweensOf(s.shadow);
+                if (s.shadow.parent) s.shadow.parent.removeChild(s.shadow);
                 s.shadow.destroy();
             }
+            if (s.parent) s.parent.removeChild(s);
             s.destroy();
         });
         this.diceSprites = [];

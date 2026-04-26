@@ -101,6 +101,8 @@ export default defineComponent({
         }
 
         const container = this.$refs.pixiContainer as HTMLElement;
+        if (!container) return;
+
         const app = markRaw(await pixiManager.init({ resizeTo: container }));
 
         if (container && app.canvas) {
@@ -111,13 +113,16 @@ export default defineComponent({
             );
         }
 
+        // Ждем, пока Vue обновит DOM, чтобы размеры контейнера были верными
+        await this.$nextTick();
+
         this.diceCore = new DiceCore(app);
         await this.diceCore.loadAssets();
 
-        // Точка истины: значения кубиков (позже придут с бэка)
         const currentDiceSet = ['heart', 'fist', 'crit', 'fist', 'heart', 'fist', 'crit', 'heart', 'fist'];
-        this.totalGroups = new Set(currentDiceSet).size; // Считаем уникальные группы
+        this.totalGroups = new Set(currentDiceSet).size;
 
+        // Вызываем отрисовку
         this.diceCore.spawnDiceGrid(currentDiceSet);
 
         await delay(2000);
@@ -167,6 +172,9 @@ export default defineComponent({
                 this.isFinished = true;
                 this.diceCore?.destroy();
                 pixiManager.purge();
+
+                await delay(2000);
+                this.$emit('finished');
             }
         },
 
@@ -178,12 +186,33 @@ export default defineComponent({
             };
 
             return names[key] || key;
-        }
+        },
+
+        cleanup() {
+            if (this.diceCore) {
+                this.diceCore.destroy();
+                this.diceCore = null;
+            }
+
+            const app = pixiManager.app;
+            if (app && app.stage) {
+                // Удаляем вообще всё со сцены, чтобы не было "призраков" фона
+                app.stage.removeChildren();
+            }
+
+            pixiManager.purge();
+        },
+    },
+
+    beforeUnmount() {
+        this.cleanup();
     },
 });
 </script>
 
 <style scoped lang="scss">
+@import "@/assets/styles/_variables.scss";
+
 .dice-preparation-screen {
     width: 100vw;
     height: 100vh;
