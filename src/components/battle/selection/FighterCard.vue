@@ -20,7 +20,12 @@
                     <span class="stat-val">{{ Math.round(stat.displayValue) }}{{ stat.unit }}</span>
                 </div>
                 <div class="stat-bar-bg">
-                    <div :class="['stat-bar-fill', stat.class]" :style="{ width: stat.width }"></div>
+                    <div :class="['stat-bar-fill', stat.class]" :style="{ width: stat.width }">
+                        <div
+                            class="bar-glow"
+                            :style="{ opacity: internalStats.glowOpacity }"
+                        ></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -39,23 +44,33 @@ export default defineComponent({
     },
     emits: ['select'],
     setup(props) {
-        // Локальные значения для "набегания" цифр и полосок
         const internalStats = reactive({
             hp: props.fighter.maxHealth,
             atk: props.fighter.attack,
-            crit: props.fighter.crit || 5
+            crit: props.fighter.critChance || 5,
+            glowOpacity: 0
         });
 
-        // Универсальный метод анимации
         const tweenStat = (key: keyof typeof internalStats, value: number) => {
+            // Анимация самого стата
             gsap.to(internalStats, {
                 [key]: value,
-                duration: 0.6,
+                duration: 0.8,
                 ease: "power2.out"
             });
+
+            // Вспышка свечения: быстро включаем и плавно выключаем
+            gsap.fromTo(internalStats,
+                { glowOpacity: 1 }, // Пик яркости в начале движения
+                {
+                    glowOpacity: 0,
+                    duration: 1,
+                    ease: "power1.inOut"
+                }
+            );
         };
 
-        // Следим за изменениями в объекте fighter (из стора)
+        // Следим за изменениями в сторе
         watch(() => props.fighter.maxHealth, (v) => tweenStat('hp', v));
         watch(() => props.fighter.attack, (v) => tweenStat('atk', v));
         watch(() => props.fighter.crit, (v) => tweenStat('crit', v || 5));
@@ -66,13 +81,15 @@ export default defineComponent({
                 displayValue: internalStats.hp,
                 width: '100%',
                 class: 'hp',
+                glow: internalStats.glowOpacity,
                 unit: ''
             },
             {
                 label: 'ATK',
                 displayValue: internalStats.atk,
-                width: Math.min(100, internalStats.atk * 0.8) + '%', // Коэффициент под твой дизайн
+                width: Math.min(100, internalStats.atk * 0.8) + '%',
                 class: 'atk',
+                glow: internalStats.glowOpacity,
                 unit: ''
             },
             {
@@ -80,11 +97,15 @@ export default defineComponent({
                 displayValue: internalStats.crit,
                 width: Math.min(100, internalStats.crit) + '%',
                 class: 'crit',
+                glow: internalStats.glowOpacity,
                 unit: '%'
             }
         ]);
 
-        return { animatedStats };
+        return {
+            internalStats,
+            animatedStats
+        };
     }
 });
 </script>
@@ -199,4 +220,25 @@ export default defineComponent({
     &.atk { background: #ff9800; box-shadow: 0 0 10px #ff9800; }
     &.crit { background: #03a9f4; box-shadow: 0 0 10px #03a9f4; }
 }
+
+.stat-bar-fill {
+    position: relative;
+    height: 100%;
+
+    .bar-glow {
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 15px;
+        background: #fff;
+        filter: blur(8px);
+        pointer-events: none;
+        transition: opacity 0.1s ease;
+    }
+}
+
+.hp .bar-glow { box-shadow: 0 0 15px #42ff78; }
+.atk .bar-glow { box-shadow: 0 0 15px #ffb342; }
+.crit .bar-glow { box-shadow: 0 0 15px #c442ff; }
 </style>
