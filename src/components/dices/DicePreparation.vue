@@ -100,7 +100,7 @@ const handleGroupComplete = async () => {
         isFinished.value = true;
         if (diceCore) diceCore.destroy();
 
-        await delay(2000);
+        await delay(3000);
         emit('finished');
     }
 };
@@ -162,10 +162,8 @@ onMounted(async () => {
 
     diceCore.spawnDiceGrid(currentDiceSet);
 
-    setTimeout(() => {
-        console.log('Starting collectDices');
-        diceCore?.collectDices(animateStatGrowth);
-    }, 2000);
+    await delay(2000);
+    await diceCore?.collectDices(animateStatGrowth);
 });
 
 onBeforeUnmount(() => {

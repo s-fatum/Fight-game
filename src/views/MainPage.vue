@@ -4,7 +4,11 @@
             <div class="pixi-canvas-container" ref="pixiContainer"></div>
             <div class="ui-layer">
                 <transition name="fade" mode="out-in">
-                    <component :is="activeComponent" v-if="activeComponent" />
+                    <component
+                        :is="activeComponent"
+                        v-if="activeComponent"
+                        @finished="setNextScreen"
+                    />
                 </transition>
             </div>
         </div>
@@ -19,6 +23,7 @@ import { PixiManager } from '@/core/PixiManager';
 import FighterSelection from '@/components/battle/FighterSelection.vue';
 import DicePreparation from '@/components/dices/DicePreparation.vue';
 import EnemySelection from '@/components/battle/EnemySelection.vue';
+import type { GameScreen } from '@/types.ts';
 
 const store = useGameStore();
 const pixiContainer = ref<HTMLElement | null>(null);
@@ -35,6 +40,11 @@ const activeComponent = computed(() => {
         default: return null;
     }
 });
+
+const setNextScreen = () => {
+    const screen = store.currentScreen === 'dices' ? 'roulette': 'battle';
+    store.setScreen(screen);
+};
 
 onMounted(async () => {
     if (!pixiContainer.value) return;
