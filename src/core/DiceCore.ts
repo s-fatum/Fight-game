@@ -13,16 +13,14 @@ interface DiceSprite extends PIXI.Sprite {
 }
 
 export class DiceCore {
-    private app: PIXI.Application;
     private gameLayer: PIXI.Container;
-    private areaWidth: number;
-    private areaHeight: number;
+    private readonly areaWidth: number;
+    private readonly areaHeight: number;
     private diceSprites: DiceSprite[] = [];
     private textures: Record<string, PIXI.Texture> = {};
     private backgroundSprite: PIXI.Sprite | null = null;
 
-    constructor(app: PIXI.Application, gameLayer: PIXI.Container, areaWidth: number, areaHeight: number) {
-        this.app = app;
+    constructor(gameLayer: PIXI.Container, areaWidth: number, areaHeight: number) {
         this.gameLayer = gameLayer;
         this.areaWidth = areaWidth;
         this.areaHeight = areaHeight;

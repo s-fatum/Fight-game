@@ -154,7 +154,6 @@ onMounted(async () => {
     totalGroups.value = new Set(currentDiceSet).size;
 
     diceCore = new DiceCore(
-        app,
         app.stage,
         app.screen.width,
         app.screen.height

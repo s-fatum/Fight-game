@@ -88,7 +88,6 @@ export class NeonLogo {
             scale: 0.6,
             duration: 1.2,
             ease: "expo.out",
-            force3D: true
         });
     }
 

@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onBeforeUnmount, ref, markRaw, provide } from 'vue';
+import { computed, onMounted, onBeforeUnmount, ref, markRaw } from 'vue';
 import { useGameStore } from '@/store/GameStore';
 import { PixiManager } from '@/core/PixiManager';
 
@@ -27,7 +27,7 @@ const emit = defineEmits(['toggle-header']);
 let pixiManager: PixiManager | null = null;
 
 const activeComponent = computed(() => {
-    console.log('store.currentScreen ✅', store.currentScreen, activeComponent);
+    console.log('store.currentScreen ✅', store.currentScreen);
     switch (store.currentScreen) {
         case 'main': return markRaw(FighterSelection);
         case 'dices': return markRaw(DicePreparation);
@@ -40,7 +40,6 @@ onMounted(async () => {
     if (!pixiContainer.value) return;
     pixiManager = new PixiManager();
     await pixiManager.init(pixiContainer.value);
-    provide('pixiManager', pixiManager);
 
     pixiManager.setCallback(() => {
         emit('toggle-header', true);

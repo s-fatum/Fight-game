@@ -5,8 +5,6 @@ import { NeonLogo } from './NeonLogo';
 import gsap from 'gsap';
 import { delay } from '@/utils/time';
 import { useGameStore } from '@/store/GameStore';
-import { DiceCore } from './DiceCore';
-import type { DiceValue } from '@/types';
 
 export class PixiManager {
     public app: Application | null = null;
@@ -134,16 +132,5 @@ export class PixiManager {
 
     public setCallback(fn: () => void) {
         this.onIntroFinished = fn;
-    }
-
-    public async showDiceScene(diceSet: DiceValue[], onCollect: (type: DiceValue, count: number) => void) {
-        if (!this.app || !this.gameLayer) return;
-        this.gameLayer.removeChildren();
-
-        const diceCore = new DiceCore(this.app, this.gameLayer);
-        await diceCore.loadAssets();
-        diceCore.spawnDiceGrid(diceSet);
-        setTimeout(() => diceCore.collectDices(onCollect), 2000);
-        return diceCore;
     }
 }
