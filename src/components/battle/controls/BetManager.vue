@@ -1,24 +1,21 @@
 <template>
     <div class="bet-manager">
         <div class="section-title">Выбор ставки</div>
-
         <div class="bet-display">
             <span class="amount">{{ store.betAmount }}</span>
             <span class="currency">🪙</span>
         </div>
-
         <div class="bet-grid">
             <button
                 v-for="amount in betOptions"
                 :key="amount"
                 class="bet-btn"
-                :disabled="!store.canAffordBet(amount)"
+                :disabled="!store.canAffordBet(store.betAmount + amount)"
                 @click="store.addToBet(amount)"
             >
                 +{{ amount }}
             </button>
         </div>
-
         <button class="reset-bet-link" @click="store.resetBet()">
             Сбросить ставку
         </button>
@@ -30,16 +27,10 @@ import { defineComponent } from 'vue';
 import { useBattleStore } from '@/store/BattleStore';
 
 export default defineComponent({
-    name: 'FighterSelection',
-    emits: ['start'],
+    name: 'BetManager',
     setup() {
         const store = useBattleStore();
-        if (!store.betAmount) {
-            store.betAmount = 5;
-        }
-
         const betOptions = [10, 50, 100, 200, 500, 1000];
-
         return { store, betOptions };
     },
 });

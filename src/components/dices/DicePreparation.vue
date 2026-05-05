@@ -1,9 +1,6 @@
 <template>
     <div class="dice-preparation-screen">
-        <div
-            class="hud-frame dice-layout"
-            :class="{ 'is-summary': isFinished }"
-        >
+        <div class="hud-frame dice-layout" :class="{ 'is-summary': isFinished }">
             <div v-if="!isFinished" class="dice-canvas-section">
                 <div ref="pixiContainer" class="pixi-wrapper"></div>
             </div>
@@ -57,161 +54,158 @@
     </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, markRaw } from 'vue';
-import { pixiManager } from '@/core/pixiApp';
+<script setup lang="ts">
+import { ref, reactive, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import * as PIXI from 'pixi.js';
 import { DiceCore } from '@/core/DiceCore';
 import gsap from 'gsap';
 import FighterCard from '@/components/battle/selection/FighterCard.vue';
-import { useBattleStore } from '@/store/BattleStore.ts';
+import { useBattleStore } from '@/store/BattleStore';
+import { useGameStore } from '@/store/GameStore';
 import { delay } from '@/utils/time';
-import type { StatKey } from '@/types.ts'
+import type { StatKey, DiceValue } from '@/types';
 
-export default defineComponent({
-    name: 'DicePreparation',
-    components: { FighterCard },
-    setup() {
-        const battleStore = useBattleStore();
-        return { battleStore };
-    },
-    data() {
-        return {
-            diceCore: null as DiceCore | null,
-            isFinished: false,
-            statKeys: ['heart', 'fist', 'crit'] as StatKey[],
-            displayBoosts: { heart: 0, fist: 0, crit: 0 } as Record<StatKey, number>,
-            baseStats: { heart: 0, fist: 0, crit: 0 } as Record<string, number>,
-            // Счетчики для авто-перехода
-            totalGroups: 0,
-            completedGroups: 0,
-        };
-    },
-    computed: {
-        player() {
-            return this.battleStore.player;
-        },
-    },
-    async mounted() {
-        if (this.player) {
-            this.baseStats = {
-                heart: this.player.maxHealth,
-                fist: this.player.attack,
-                crit: this.player.crit || 5,
-            };
-        }
+const emit = defineEmits(['finished']);
+const battleStore = useBattleStore();
+const gameStore = useGameStore();
 
-        const container = this.$refs.pixiContainer as HTMLElement;
-        if (!container) return;
+const pixiContainer = ref<HTMLElement | null>(null);
+let app: PIXI.Application | null = null;
+let diceCore: DiceCore | null = null;
 
-        const app = markRaw(await pixiManager.init({ resizeTo: container }));
+const isFinished = ref(false);
+const totalGroups = ref(0);
+const completedGroups = ref(0);
+const statKeys: StatKey[] = ['hp', 'atk', 'crt'];
+const statMapping: Record<DiceValue, StatKey> = { heart: 'hp', fist: 'atk', crit: 'crt' };
+const displayBoosts = reactive<Record<StatKey, number>>({ hp: 0, atk: 0, crt: 0 });
+const baseStats = reactive<Record<StatKey, number>>({ hp: 0, atk: 0, crt: 0 });
+const player = computed(() => battleStore.player);
 
-        if (container && app.canvas) {
-            container.appendChild(app.canvas);
-            pixiManager.forceResize(
-                container.clientWidth,
-                container.clientHeight,
-            );
-        }
+const getStatName = (key: StatKey): string => {
+    const names: Record<StatKey, string> = { hp: 'Здоровье', atk: 'Атака', crt: 'Шанс крита' };
+    return names[key];
+};
 
-        // Ждем, пока Vue обновит DOM, чтобы размеры контейнера были верными
-        await this.$nextTick();
+const getFinalValue = (key: StatKey): number => {
+    const base = baseStats[key] || 0;
+    const bonusPercent = displayBoosts[key] || 0;
+    return Math.round(base + (base * bonusPercent) / 100);
+};
 
-        this.diceCore = new DiceCore(app);
-        await this.diceCore.loadAssets();
-
-        const currentDiceSet = ['heart', 'fist', 'crit', 'fist', 'heart', 'fist', 'crit', 'heart', 'fist'];
-        this.totalGroups = new Set(currentDiceSet).size;
-
-        // Вызываем отрисовку
-        this.diceCore.spawnDiceGrid(currentDiceSet);
-
+const handleGroupComplete = async () => {
+    completedGroups.value++;
+    if (completedGroups.value >= totalGroups.value) {
+        await delay(1000);
+        isFinished.value = true;
+        if (diceCore) diceCore.destroy();
+        if (app) app.destroy(true, { children: true });
         await delay(2000);
+        emit('finished');
+    }
+};
 
-        this.diceCore?.collectDices((type: StatKey, count: number) => {
-            this.animateStatGrowth(type, count);
-        });
-    },
-    methods: {
-        getFinalValue(key: StatKey): number {
-            const base =
-                this.baseStats[key] || 0;
-            const bonusPercent =
-                this.displayBoosts[key] || 0;
-            return Math.round(base + (base * bonusPercent) / 100);
-        },
-        animateStatGrowth(type: string, count: number) {
-            const multipliers: Record<string, number> = {
-                heart: 10,
-                fist: 15,
-                crit: 2,
-            };
-            const increment = count * multipliers[type]!;
+const animateStatGrowth = (diceType: DiceValue, count: number) => {
+    const statKey = statMapping[diceType];
+    const multipliers: Record<StatKey, number> = { hp: 10, atk: 15, crt: 2 };
+    const increment = count * multipliers[statKey];
+    gsap.to(displayBoosts, {
+        [statKey]: displayBoosts[statKey] + increment,
+        duration: 1.2,
+        ease: 'power2.out',
+        onComplete: handleGroupComplete,
+    });
+    if (player.value) {
+        if (statKey === 'hp') player.value.health += increment;
+        else if (statKey === 'atk') player.value.attack += increment;
+        else if (statKey === 'crt') player.value.crit += increment;
+    }
+};
 
-            gsap.to(this.displayBoosts, {
-                [type]:
-                    this.displayBoosts[
-                        type as StatKey
-                    ]! + increment,
-                duration: 1.2,
-                ease: 'power2.out',
-                onComplete: () => this.handleGroupComplete(),
-            });
+onMounted(async () => {
+    await nextTick();
+    // Даём время на финальную отрисовку DOM
+    await new Promise(resolve => setTimeout(resolve, 100));
 
-            // Обновляем стор для живой анимации полосок в FighterCard
-            if (this.player) {
-                if (type === 'heart') this.player.maxHealth += increment;
-                else if (type === 'fist') this.player.attack += increment;
-                else if (type === 'crit')
-                    this.player.crit = (this.player.crit || 5) + increment;
-            }
-        },
-        async handleGroupComplete() {
-            this.completedGroups++;
-            if (this.completedGroups >= this.totalGroups) {
-                await delay(1000);
-                this.isFinished = true;
-                this.diceCore?.destroy();
-                pixiManager.purge();
+    const container = pixiContainer.value;
+    if (!container) {
+        console.error('pixiContainer not found');
+        return;
+    }
 
-                await delay(2000);
-                this.$emit('finished');
-            }
-        },
+    // 1. Создаём локальное приложение Pixi
+    const rect = container.getBoundingClientRect();
+    const width = rect.width || 800;
+    const height = rect.height || 600;
+    console.log(`Creating Pixi app with size: ${width}x${height}`);
 
-        getStatName(key: string): string {
-            const names: Record<string, string> = {
-                heart: 'Здоровье',
-                fist: 'Атака',
-                crit: 'Шанс крита'
-            };
+    app = new PIXI.Application();
+    await app.init({
+        resizeTo: container,
+        resolution: window.devicePixelRatio || 1,
+        autoDensity: true,
+        backgroundAlpha: 0,
+        antialias: true,
+    });
 
-            return names[key] || key;
-        },
+    container.appendChild(app.canvas);
 
-        cleanup() {
-            if (this.diceCore) {
-                this.diceCore.destroy();
-                this.diceCore = null;
-            }
+    // 4. Получаем массив кубиков из стора
+    let currentDiceSet = gameStore.diceArrayForAnim as DiceValue[];
 
-            const app = pixiManager.app;
-            if (app && app.stage) {
-                // Удаляем вообще всё со сцены, чтобы не было "призраков" фона
-                app.stage.removeChildren();
-            }
+    // 5. Инициализация базовых статов игрока
+    if (player.value) {
+        baseStats.hp = player.value.health;
+        baseStats.atk = player.value.attack;
+        baseStats.crt = player.value.crit;
+    }
+    totalGroups.value = new Set(currentDiceSet).size;
 
-            pixiManager.purge();
-        },
-    },
+    // 6. Создаём DiceCore с переданной областью
+    diceCore = new DiceCore(
+        app,
+        app.stage,
+        app.screen.width, // Здесь всегда будет 544 (Screen), а не 816 (Renderer)
+        app.screen.height
+    );
+    await diceCore.loadAssets();
+    console.log('Assets loaded');
+    diceCore.spawnDiceGrid(currentDiceSet);
+    console.log('Dice grid spawned');
 
-    beforeUnmount() {
-        this.cleanup();
-    },
+    // 7. Запускаем сбор кубиков через 2 секунды
+    setTimeout(() => {
+        console.log('Starting collectDices');
+        diceCore?.collectDices(animateStatGrowth);
+    }, 2000);
+});
+
+onBeforeUnmount(() => {
+    if (diceCore) diceCore.destroy();
+    if (app) {
+        const handler = (app as any).__resizeHandler;
+        if (handler) window.removeEventListener('resize', handler);
+        app.destroy(true, { children: true });
+        app = null;
+    }
 });
 </script>
 
 <style scoped lang="scss">
-@import "@/assets/styles/_variables.scss";
+@use "@/assets/styles/_variables.scss" as *;
+
+.dice-canvas-section {
+    position: relative; // База для абсолютного канваса внутри
+    overflow: hidden;   // Обрезаем всё, что торчит
+
+    .pixi-wrapper {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+}
 
 .dice-preparation-screen {
     width: 100vw;

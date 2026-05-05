@@ -1,146 +1,73 @@
 <template>
-    <div class="page-background main-bg" ref="pixiContainer">
-        <div class="ui-layer">
-            <FighterSelection
-                v-if="step === 'selection'"
-                @start="handleStart"
-            />
-
-            <DiceOverlay
-                v-if="step === 'dices'"
-                @finished="onDicesFinished"
-            />
-
-            <EnemySelection
-                v-if="step === 'roulette'"
-                :targetEnemy="targetEnemy"
-                @finished="onRouletteFinished"
-            />
+    <div class="main-page">
+        <div class="page-background main-bg">
+            <div class="pixi-canvas-container" ref="pixiContainer"></div>
+            <div class="ui-layer">
+                <transition name="fade" mode="out-in">
+                    <component :is="activeComponent" v-if="activeComponent" />
+                </transition>
+            </div>
         </div>
     </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue';
-import { delay } from '@/utils/time'; // Импортируем наш хелпер
-import { useBattleStore } from '@/store/BattleStore';
-import { pixiManager } from '@/core/pixiApp';
-import { NeonLogo } from '@/core/NeonLogo';
+<script setup lang="ts">
+import { computed, onMounted, onBeforeUnmount, ref, markRaw, provide } from 'vue';
+import { useGameStore } from '@/store/GameStore';
+import { PixiManager } from '@/core/PixiManager';
+
 import FighterSelection from '@/components/battle/FighterSelection.vue';
-import EnemySelection from '@/components/battle/EnemySelection.vue';
 import DicePreparation from '@/components/dices/DicePreparation.vue';
+import EnemySelection from '@/components/battle/EnemySelection.vue';
 
-export default defineComponent({
-    name: 'MainPage',
-    emits: ['toggle-header'],
-    data() {
-        return {
-            logo: null as NeonLogo | null,
-        };
-    },
-    components: { FighterSelection, EnemySelection, DiceOverlay: DicePreparation },
-    setup() {
-        const step = ref<'intro' | 'selection' | 'dices' | 'roulette'>('intro');
-        const pixiTicker = ref<(() => void) | null>(null);
+const store = useGameStore();
+const pixiContainer = ref<HTMLElement | null>(null);
+const emit = defineEmits(['toggle-header']);
 
-        const store = useBattleStore();
-        const targetEnemy = ref<any>(null);
+let pixiManager: PixiManager | null = null;
 
-        onMounted(async () => {
-            await store.loadFighters();
-        });
-
-        const onRouletteFinished = async () => {
-            store.applyDiceBoosts();
-            await store.startMainFight();
-        };
-
-        const onDicesFinished = async () => {
-            step.value = 'roulette';
-            console.log(step);
-        };
-
-        return { step, pixiTicker, onRouletteFinished, onDicesFinished, targetEnemy };
-    },
-    methods: {
-        // Метод для очистки логотипа
-        cleanupLogo() {
-            if (this.logo) {
-                const app = pixiManager.app;
-                if (app && this.pixiTicker) {
-                    app.ticker.remove(this.pixiTicker);
-                }
-                this.logo.destroy(); // Вызываем новый метод
-                this.logo = null;
-            }
-        },
-
-        async handleStart() {
-            // Очищаем логотип перед переходом
-            this.cleanupLogo();
-
-            const store = useBattleStore();
-            const enemy = await store.prepareBattleData();
-            if (enemy) {
-                this.targetEnemy = enemy;
-            }
-
-            await store.startDiceRolling();
-
-            this.step = 'dices';
-        }
-    },
-    mounted: async function() {
-        if (this.step === 'dices' || this.step === 'roulette') {
-            return;
-        }
-
-        this.$emit('toggle-header', false);
-
-        const app = await pixiManager.init();
-        const container = this.$refs.pixiContainer as HTMLDivElement;
-        if (container && app.canvas) {
-            container.prepend(app.canvas);
-        }
-
-        await document.fonts.load('1em Oswald');
-        await document.fonts.ready;
-
-        this.logo = new NeonLogo(app);
-
-        // Сохраняем тикер в реф из setup
-        this.pixiTicker = () => {
-            if (this.logo) this.logo.update();
-        };
-        app.ticker.add(this.pixiTicker);
-
-        await delay(2500); // Пауза на интро
-
-        if (this.logo) this.logo.flyToTop();
-        this.$emit('toggle-header', true);
-
-        await delay(1200); // Ждем пока лого долетит
-
-        this.step = 'selection'; // Показываем игроков
-    },
-
-    beforeUnmount() {
-        const app = pixiManager.app;
-        if (app && this.pixiTicker) {
-            app.ticker.remove(this.pixiTicker);
-        }
-        pixiManager.purge();
+const activeComponent = computed(() => {
+    console.log('store.currentScreen ✅', store.currentScreen, activeComponent);
+    switch (store.currentScreen) {
+        case 'main': return markRaw(FighterSelection);
+        case 'dices': return markRaw(DicePreparation);
+        case 'roulette': return markRaw(EnemySelection);
+        default: return null;
     }
+});
+
+onMounted(async () => {
+    if (!pixiContainer.value) return;
+    pixiManager = new PixiManager();
+    await pixiManager.init(pixiContainer.value);
+    provide('pixiManager', pixiManager);
+
+    pixiManager.setCallback(() => {
+        emit('toggle-header', true);
+    });
+
+    if (store.currentScreen === 'intro') {
+        await pixiManager.startIntro();
+    }
+});
+
+onBeforeUnmount(() => {
+    if (pixiManager) pixiManager.fullDestroy();
+    pixiManager = null;
 });
 </script>
 
 <style scoped lang="scss">
 @import url('@/assets/styles/fonts.scss');
 
+.main-page {
+    width: 100%;
+    height: 100%;
+}
 .page-background {
     position: relative;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
     overflow: hidden;
     background-image:
         linear-gradient(rgba(10, 20, 30, 0.4), rgba(10, 20, 30, 0.8)),
@@ -148,29 +75,20 @@ export default defineComponent({
     background-size: cover;
     background-position: top center;
     background-repeat: no-repeat;
-    padding-top: 80px;
     box-sizing: border-box;
-    overflow-y: auto;
 }
-
+.pixi-canvas-container {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    overflow: hidden;
+}
 .ui-layer {
     position: relative;
     z-index: 10;
     height: 100%;
+    padding-top: 80px;
     overflow-y: auto;
-}
-
-.main-page {
-    position: relative;
-    max-width: 100%;
-    margin: 0 auto;
-}
-
-:deep(canvas) {
-    position: absolute !important;
-    top: 0;
-    left: 0;
-    z-index: 0;
-    pointer-events: none;
 }
 </style>

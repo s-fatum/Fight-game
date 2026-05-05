@@ -7,7 +7,6 @@
                 <span class="unit">шт.</span>
             </div>
         </div>
-
         <button
             class="buy-btn"
             @click="store.buyDice"
@@ -27,7 +26,7 @@ export default defineComponent({
     setup() {
         const store = useBattleStore();
         return { store };
-    }
+    },
 });
 </script>
 

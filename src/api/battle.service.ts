@@ -1,70 +1,60 @@
-import type { BattleScenario, Fighter } from '@/types';
+import type { Fighter, BattleScenario } from '@/types';
 
 export const BattleService = {
+    async delay(ms: number) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    },
+
     async fetchFighters(): Promise<Fighter[]> {
-        // Имитация данных из твоего старого ApiCharacters
+        await this.delay(300);
         return [
-            {
-                id: 1,
-                name: 'Флешка с логотипом',
-                currentHealth: 100,
-                maxHealth: 100,
-                attack: 15,
-                avatar: 'flash_h.jpg',
-                crit: 8
-            },
-            {
-                id: 2,
-                name: 'Панама с нанесением',
-                currentHealth: 100,
-                maxHealth: 100,
-                attack: 12,
-                avatar: 'panama_h.jpg',
-                crit: 12
-            },
-            {
-                id: 3,
-                name: 'Календарь перекидной',
-                currentHealth: 80,
-                maxHealth: 80,
-                attack: 20,
-                avatar: 'calendar_h.jpg',
-                crit: 5
-            },
-         ];
+            { id: 1, name: 'Флешка', image: 'flash', health: 100, attack: 15, crit: 8, currentHealth: 100 },
+            { id: 2, name: 'Панама', image: 'panama', health: 120, attack: 12, crit: 12, currentHealth: 120 },
+            { id: 3, name: 'Злой Календарь', image: 'calendar', health: 80, attack: 20, crit: 5, currentHealth: 80 }
+        ];
     },
 
-    async startBattle(playerFighterId: number, diceCount: number): Promise<{
-        enemy: Fighter,
-        diceValues: number[],
-        scenario: BattleScenario
-    }> {
-        // 1. Получаем список всех, кроме игрока
-        const all = await this.fetchFighters();
-        const possibleEnemies = all.filter(f => f.id !== playerFighterId);
-
-        // 2. Рандомим врага (на бэке это был бы результат выборки из БД)
-        const enemy = possibleEnemies[Math.floor(Math.random() * possibleEnemies.length)]!;
-
-        // 3. Генерируем значения для купленных кубиков (1-6)
-        const diceValues = Array.from({ length: diceCount }, () => Math.floor(Math.random() * 6) + 1);
-
-        // 4. Генерируем сценарий боя
-        const scenario = await this.generateScenario(diceCount, false);
-
-        return { enemy, diceValues, scenario };
-    },
-
-    async generateScenario(diceCount: number, isBossMode: boolean): Promise<BattleScenario> {
-        return {
-            winnerId: 1, // Пусть 1 всегда будет "Игрок"
-            initialBoosts: [],
+    async startBattle(payload: { fighterId: number; bet: number; diceCount: number }): Promise<{ enemy: Fighter; scenario: BattleScenario }> {
+        await this.delay(800);
+        const enemy: Fighter = {
+            id: 3,
+            name: 'Календарь',
+            image: 'calendar',
+            health: 150,
+            attack: 18,
+            crit: 10,
+            currentHealth: 150
+        };
+        const scenario: BattleScenario = {
+            winnerId: payload.fighterId,
+            diceValues: { heart: 2, fist: 3, crit: 4 },
             rounds: [
-                { attackerId: 1, targetId: 2, damage: 20, isCrit: false }, // Игрок бьет Врага
-                { attackerId: 2, targetId: 1, damage: 15, isCrit: true },  // Враг бьет Игрока
-                { attackerId: 1, targetId: 2, damage: 20, isCrit: false }, // Игрок бьет Врага
-                { attackerId: 1, targetId: 2, damage: 80, isCrit: true }  // Игрок добивает
+                {
+                    attackerId: payload.fighterId,
+                    targetId: 3,
+                    damage: 15,
+                    isCrit: false,
+                    shakeIntensity: 0,
+                    slotResult: ['sword', 'shield', 'sword']
+                },
+                {
+                    attackerId: 3,
+                    targetId: payload.fighterId,
+                    damage: 20,
+                    isCrit: false,
+                    shakeIntensity: 1,
+                    slotResult: ['skull', 'miss', 'skull']
+                },
+                {
+                    attackerId: payload.fighterId,
+                    targetId: 3,
+                    damage: 55,
+                    isCrit: true,
+                    shakeIntensity: 2,
+                    slotResult: ['fire', 'fire', 'fire']
+                }
             ]
         };
+        return { enemy, scenario };
     }
 };

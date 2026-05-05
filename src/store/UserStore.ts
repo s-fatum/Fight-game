@@ -1,25 +1,17 @@
 import { defineStore } from 'pinia';
-import { UserService } from "@/api/user.service";
-import type { UserAccount } from '@/types';
+import { ref } from 'vue';
+import type { IUserAccount } from '@/types';
+import { UserService } from '@/api/user.service.ts';
 
-export const useUserStore = defineStore('user', {
-    state: () => ({
-        account: null as UserAccount | null,
-        balance: 0,
-    }),
-    actions: {
-        async loadUserData() {
-            const data = await UserService.fetchUserData();
-            this.account = data;
-            this.balance = data.balance;
-        },
-        // Метод для изменения баланса
-        spendMoney(amount: number): boolean {
-            if (this.balance >= amount) {
-                this.balance -= amount;
-                return true;
-            }
-            return false;
-        }
-    }
+export const useUserStore = defineStore('user', () => {
+    const account = ref<IUserAccount | null>(null);
+    const balance = ref(0);
+
+    const loadUserData = async () => {
+        const data = await UserService.fetchUserData();
+        account.value = data;
+        balance.value = data.balance;
+    };
+
+    return { account, balance, loadUserData };
 });

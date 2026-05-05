@@ -5,49 +5,53 @@
         </transition>
         <main class="main">
             <div class="container">
-                <MainPage
-                    v-if="currentScreen === 'main'"
-                    @toggle-header="setHeaderVisibility"
-                />
-                <BattlePage v-if="currentScreen === 'battle'" />
+                <MainPage v-if="isLobby" />
+                <BattlePage v-if="isBattle" />
             </div>
         </main>
     </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
-import { mapActions, mapState } from 'pinia';
-import { useBattleStore } from '@/store/BattleStore.ts';
-import { useUserStore } from '@/store/UserStore.ts';
+import { defineComponent, ref, computed, onMounted, watch } from 'vue';
+import { useGameStore } from '@/store/GameStore';
+import { useUserStore } from '@/store/UserStore';
 import MainPage from '@/views/MainPage.vue';
 import BattlePage from '@/views/BattlePage.vue';
 import Header from '@/components/ui/Header.vue';
 
 export default defineComponent({
+    name: 'App',
+    components: { MainPage, BattlePage, Header },
     setup() {
+        const gameStore = useGameStore();
+        const userStore = useUserStore();
         const isHeaderVisible = ref(false);
 
-        const setHeaderVisibility = (visible: boolean) => {
-            isHeaderVisible.value = visible;
-        };
+        watch(() => gameStore.currentScreen, (newScreen) => {
+            if (newScreen !== 'intro' && !isHeaderVisible.value) {
+                isHeaderVisible.value = true;
+            }
+        });
+        const isLobby = computed(() =>
+            ['intro', 'main', 'dices', 'roulette'].includes(gameStore.currentScreen)
+        );
+        const isBattle = computed(() =>
+            ['battle', 'finish'].includes(gameStore.currentScreen)
+        );
+        onMounted(async () => {
+            await userStore.loadUserData();
 
-        return { isHeaderVisible, setHeaderVisibility };
-    },
-    components: { MainPage, BattlePage, Header },
-    computed: {
-        ...mapState(useBattleStore, ['currentScreen']),
-    },
-    methods: {
-        ...mapActions(useUserStore, ['loadUserData']),
-    },
-    mounted(): any {
-        this.loadUserData();
-    },
+            await gameStore.loadFighters();
+        });
+        return { isHeaderVisible, isLobby, isBattle };
+    }
 });
 </script>
 
 <style lang="scss">
+@import url('@/assets/styles/fonts.scss');
+
 :root {
     overflow: hidden;
 }

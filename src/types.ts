@@ -1,48 +1,35 @@
+export type StatKey = 'hp' | 'atk' | 'crt';
+export type DiceValue = 'heart' | 'fist' | 'crit';
+export type GameScreen = 'intro' | 'main' | 'dices' | 'roulette' | 'battle' | 'finish';
+
 export interface Fighter {
     id: number;
     name: string;
-    avatar: string;
-    maxHealth: number;
-    currentHealth: number;
+    image: string;
+    health: number;
     attack: number;
     crit: number;
+    currentHealth: number;
 }
 
-export type GameState =
-    | 'START'           // Начальный экран
-    | 'SPINNING_ENEMY'  // Рулетка
-    | 'ROLLING_DICE'    // Анимация броска кубиков
-    | 'APPLYING_BOOSTS' // Визуальное усиление статов
-    | 'BATTLE_ROUND'    // Обычный бой
-    | 'GET_BOSS_PROMPT' // Выбор: забрать деньги или идти на босса
-    | 'BATTLE_BOSS'     // Бой с боссом
-    | 'FINISH_WIN'      // Экран победы (фейерверки)
-    | 'FINISH_LOSE';    // Экран поражения
-
-export interface BattleRound {
-    targetId: number;
-    damage: number;
-    attackerId: number;
-    isCrit: boolean;
-}
-
-export interface BattleScenario {
-    winnerId: number;
-    initialBoosts: any[];
-    rounds: BattleRound[];
-}
-
-export interface UserAccount {
-    sid: string;
+export interface IUserAccount {
+    uid: string;
     name: string;
     lang: string;
     balance: number;
 }
 
-export type StatKey = 'heart' | 'fist' | 'crit';
+export interface BattleRound {
+    attackerId: number;
+    targetId: number;
+    damage: number;
+    isCrit: boolean;
+    shakeIntensity: number;
+    slotResult: string[];
+}
 
-export interface FighterStats {
-    health: number;
-    attack: number;
-    crit: number;
+export interface BattleScenario {
+    winnerId: number;
+    diceValues: Record<DiceValue, number>;
+    rounds: BattleRound[];
 }

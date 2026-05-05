@@ -4,27 +4,25 @@
             <div class="main-layout">
                 <div class="selection-side">
                     <FighterCard
-                        v-for="fighter in store.availableFighters.slice(0, 3)"
+                        v-for="fighter in gameStore.availableFighters.slice(0, 3)"
                         :key="fighter.id"
                         :fighter="fighter"
-                        :isSelected="store.selectedFighterId === fighter.id"
-                        @select="store.setSelectedFighter"
+                        :isSelected="battleStore.selectedFighterId === fighter.id"
+                        @select="battleStore.setSelectedFighter"
                     />
                 </div>
-
                 <aside class="controls-side">
                     <DiceBuyer />
                     <BetManager />
                 </aside>
             </div>
         </div>
-
         <div class="footer-actions">
             <button
                 class="start-battle-btn"
-                :class="{ 'is-ready': store.selectedFighterId && store.betAmount > 0 }"
-                :disabled="!store.selectedFighterId || store.betAmount <= 0"
-                @click="$emit('start')"
+                :class="{ 'is-ready': battleStore.selectedFighterId && battleStore.betAmount > 0 }"
+                :disabled="!battleStore.selectedFighterId || battleStore.betAmount <= 0"
+                @click="battleStore.startBattleProcess"
             >
                 В БОЙ!
             </button>
@@ -34,6 +32,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { useGameStore } from '@/store/GameStore';
 import { useBattleStore } from '@/store/BattleStore';
 import FighterCard from './selection/FighterCard.vue';
 import DiceBuyer from './controls/DiceBuyer.vue';
@@ -42,9 +41,10 @@ import BetManager from './controls/BetManager.vue';
 export default defineComponent({
     components: { FighterCard, DiceBuyer, BetManager },
     setup() {
-        const store = useBattleStore();
-        return { store };
-    }
+        const gameStore = useGameStore();
+        const battleStore = useBattleStore();
+        return { gameStore, battleStore };
+    },
 });
 </script>
 
