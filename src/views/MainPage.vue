@@ -23,7 +23,6 @@ import { PixiManager } from '@/core/PixiManager';
 import FighterSelection from '@/components/battle/FighterSelection.vue';
 import DicePreparation from '@/components/dices/DicePreparation.vue';
 import EnemySelection from '@/components/battle/EnemySelection.vue';
-import type { GameScreen } from '@/types.ts';
 
 const store = useGameStore();
 const pixiContainer = ref<HTMLElement | null>(null);
