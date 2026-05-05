@@ -35,16 +35,12 @@ export class DiceCore {
             { alias: 'crit', src: imgCrit },
             { alias: 'floorBg', src: imgBackground }
         ]);
-
-        console.log('Loaded textures:', Object.keys(this.textures));
     }
 
     spawnDiceGrid(values: DiceValue[]) {
         const width = this.areaWidth;
         const height = this.areaHeight;
-        console.log(`spawnDiceGrid using area: ${width}x${height}`);
 
-        // Очистка
         this.gameLayer.removeChildren();
 
         // Фон
@@ -108,12 +104,6 @@ export class DiceCore {
             this.diceSprites.push(dice);
             createdCount++;
 
-            const debugRect = new PIXI.Graphics();
-            debugRect.rect(0, 0, width, height);
-            debugRect.stroke({ color: 0xff00ff, width: 2 });
-            this.gameLayer.addChild(debugRect);
-
-
             gsap.to(dice, {
                 y: finalY,
                 rotation: (Math.random() * 0.4) - 0.2,
@@ -123,7 +113,6 @@ export class DiceCore {
             });
         });
 
-        console.log(`Created ${createdCount} dice sprites`);
         this.gameLayer.sortChildren();
     }
 

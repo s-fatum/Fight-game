@@ -99,7 +99,7 @@ const handleGroupComplete = async () => {
         await delay(1000);
         isFinished.value = true;
         if (diceCore) diceCore.destroy();
-        if (app) app.destroy(true, { children: true });
+
         await delay(2000);
         emit('finished');
     }
@@ -133,12 +133,6 @@ onMounted(async () => {
         return;
     }
 
-    // 1. Создаём локальное приложение Pixi
-    const rect = container.getBoundingClientRect();
-    const width = rect.width || 800;
-    const height = rect.height || 600;
-    console.log(`Creating Pixi app with size: ${width}x${height}`);
-
     app = new PIXI.Application();
     await app.init({
         resizeTo: container,
@@ -150,10 +144,8 @@ onMounted(async () => {
 
     container.appendChild(app.canvas);
 
-    // 4. Получаем массив кубиков из стора
     let currentDiceSet = gameStore.diceArrayForAnim as DiceValue[];
 
-    // 5. Инициализация базовых статов игрока
     if (player.value) {
         baseStats.hp = player.value.health;
         baseStats.atk = player.value.attack;
@@ -161,19 +153,16 @@ onMounted(async () => {
     }
     totalGroups.value = new Set(currentDiceSet).size;
 
-    // 6. Создаём DiceCore с переданной областью
     diceCore = new DiceCore(
         app,
         app.stage,
-        app.screen.width, // Здесь всегда будет 544 (Screen), а не 816 (Renderer)
+        app.screen.width,
         app.screen.height
     );
     await diceCore.loadAssets();
-    console.log('Assets loaded');
-    diceCore.spawnDiceGrid(currentDiceSet);
-    console.log('Dice grid spawned');
 
-    // 7. Запускаем сбор кубиков через 2 секунды
+    diceCore.spawnDiceGrid(currentDiceSet);
+
     setTimeout(() => {
         console.log('Starting collectDices');
         diceCore?.collectDices(animateStatGrowth);
@@ -183,8 +172,6 @@ onMounted(async () => {
 onBeforeUnmount(() => {
     if (diceCore) diceCore.destroy();
     if (app) {
-        const handler = (app as any).__resizeHandler;
-        if (handler) window.removeEventListener('resize', handler);
         app.destroy(true, { children: true });
         app = null;
     }
@@ -195,8 +182,8 @@ onBeforeUnmount(() => {
 @use "@/assets/styles/_variables.scss" as *;
 
 .dice-canvas-section {
-    position: relative; // База для абсолютного канваса внутри
-    overflow: hidden;   // Обрезаем всё, что торчит
+    position: relative;
+    overflow: hidden;
 
     .pixi-wrapper {
         position: absolute;
