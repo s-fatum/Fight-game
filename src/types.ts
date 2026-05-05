@@ -31,5 +31,6 @@ export interface BattleRound {
 export interface BattleScenario {
     winnerId: number;
     diceValues: Record<DiceValue, number>;
+    boostedStats: Record<StatKey, number>;
     rounds: BattleRound[];
 }

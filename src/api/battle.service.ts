@@ -28,6 +28,7 @@ export const BattleService = {
         const scenario: BattleScenario = {
             winnerId: payload.fighterId,
             diceValues: { heart: 2, fist: 3, crit: 4 },
+            boostedStats: { hp: 120, atk: 30, crt: 12 }, // статы игрока после применения бустов
             rounds: [
                 {
                     attackerId: payload.fighterId,
